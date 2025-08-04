@@ -3,8 +3,8 @@ import { useAuthStore } from '../stores/authStore';
 
 const api = axios.create({
 
-  baseURL: 'https://craveonapi.onrender.com/api', // for production
-
+  // baseURL: 'https://craveonapi.onrender.com/api', // for production
+  baseURL:"https://craveon-backend.onrender.com/api"  // eskills development
   // baseURL: 'http://localhost:3000/api', // for development
   withCredentials: true,
 });
