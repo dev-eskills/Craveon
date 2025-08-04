@@ -2,7 +2,7 @@ const Restaurant = require("../models/Restaurants");
 const asyncHandler = require("express-async-handler");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const User = require("../models/User");
+const User = require("../models/user");
 const cloudinary = require("cloudinary").v2;
 const multer = require("multer");
 const mongoose = require("mongoose");
@@ -297,18 +297,18 @@ exports.getAllRestaurants = asyncHandler(async (req, res) => {
           (todayHours.open.includes("PM") && openHour !== 12
             ? openHour + 12
             : openHour === 12 && todayHours.open.includes("AM")
-            ? 0
-            : openHour) *
-            60 +
+              ? 0
+              : openHour) *
+          60 +
           openMinute;
 
         const closeTime =
           (todayHours.close.includes("PM") && closeHour !== 12
             ? closeHour + 12
             : closeHour === 12 && todayHours.close.includes("AM")
-            ? 0
-            : closeHour) *
-            60 +
+              ? 0
+              : closeHour) *
+          60 +
           closeMinute;
 
         isOpen = nowTime >= openTime && nowTime < closeTime;
@@ -639,9 +639,8 @@ exports.toggleActiveStatus = asyncHandler(async (req, res) => {
     await restaurant.save();
 
     res.status(200).json({
-      message: `Restaurant ${
-        restaurant.isActive ? "activated" : "deactivated"
-      } successfully`,
+      message: `Restaurant ${restaurant.isActive ? "activated" : "deactivated"
+        } successfully`,
       isActive: restaurant.isActive,
     });
   } catch (error) {

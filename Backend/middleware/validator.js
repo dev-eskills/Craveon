@@ -18,7 +18,7 @@
 
 // src/middleware/validator.js
 const { body, validationResult } = require("express-validator");
-const User = require("../models/User");
+const User = require("../models/user");
 
 const validateLogin = [
   // Email validation

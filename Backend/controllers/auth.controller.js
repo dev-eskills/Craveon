@@ -5,7 +5,7 @@ const {
   // sendResetPasswordEmail,
 } = require("../services/email.service");
 // const { sendSMS } = require("../services/sms.service");
-const User = require("../models/User");
+const User = require("../models/user");
 
 
 
@@ -99,7 +99,7 @@ exports.updateDetails = asyncHandler(async (req, res, next) => {
 // Helper function to generate token and set cookie
 const sendTokenResponse = async (user, statusCode, res) => {
   const accessToken = user.getSignedJwtToken();
-  console.log(accessToken , "tokenn")
+  console.log(accessToken, "tokenn")
   const refreshToken = await user.getRefreshToken(); // Ensure refresh token is saved
 
   // Set cookies
