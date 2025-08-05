@@ -35,11 +35,10 @@ const AdminAddRestaurant = () => {
   const { addRestaurantFn, updateRestaurantDetailFn } = useRestaurants();
   const resetState = useRestaurantStore((state) => state.resetState);
   const { location } = localLocation();
-  console.log(location , "location")
   const [searchParams] = useSearchParams();
   const isEdit = searchParams.get('edit') === 'true';
-  // const location = useLocation();
-  const queryParams = new URLSearchParams(location.search);
+  const paramslocation = useLocation();
+  const queryParams = new URLSearchParams(paramslocation.search);
   const editId = queryParams.get('id');
 
   const tabs = [
@@ -196,8 +195,6 @@ const AdminAddRestaurant = () => {
         commissionRate: additionalSettings.commissionRate,
         packagingCharge: additionalSettings.packagingCharge,
       };
-
-      console.log(data , "dataa")
 
       if (isEdit) {
         updateRestaurantDetailFn(
@@ -417,7 +414,6 @@ const AdminAddRestaurant = () => {
               <div className="py-2 px-4">
                 <div className="flex items-center justify-between">
                   <h2 className="text-lg font-bold text-gray-800">Please Select Location</h2>
-                  
                 </div>
               </div>
 
@@ -430,7 +426,7 @@ const AdminAddRestaurant = () => {
 
               {/* Location Input Section */}
               <div className="p-4 flex-1">
-              <div className="relative">
+                <div className="relative">
                   <Location />
                 </div>
               </div>

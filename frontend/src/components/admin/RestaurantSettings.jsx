@@ -7,13 +7,18 @@ import useStoreUpdate from '../../hooks/useStoreUpdate';
 const RestaurantSettings = ({ singleRestaurant }) => {
   const { updateRestaurantStatusFn } = useRestaurants();
   const { isActive, _id } = singleRestaurant;
+
   const navigate = useNavigate();
 
   const storeUpdate = useStoreUpdate();
 
   const handleEditRestaurant = (singleRestaurant) => {
-    storeUpdate(singleRestaurant);
-    navigate(`/admin/add-restaurant?edit=true&id=${_id}`);
+    if (singleRestaurant.location.coordinates.length > 0) {
+      storeUpdate(singleRestaurant);
+      navigate(`/admin/add-restaurant?edit=true&id=${_id}`);
+    } else {
+      alert('Please select your location on the map.');
+    }
   };
 
   return (
