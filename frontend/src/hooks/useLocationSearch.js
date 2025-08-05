@@ -18,12 +18,12 @@ const useLocationSearch = (query) => {
         // types: ['geocode'], // Comment this out to get more results
 
         // Option 2: Use location restriction instead of bias (more strict)
-        locationRestriction: {
-          north: 22.8, // Adjust these bounds for your city
-          south: 22.6,
-          east: 76.0,
-          west: 75.7,
-        },
+        // locationRestriction: {
+        //   north: 22.8, // Adjust these bounds for your city
+        //   south: 22.6,
+        //   east: 76.0,
+        //   west: 75.7,
+        // },
 
         // Alternative: Location bias (less strict than restriction)
         // locationBias: {

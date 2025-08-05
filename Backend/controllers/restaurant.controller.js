@@ -228,10 +228,194 @@ exports.createRestaurant = asyncHandler(async (req, res) => {
   }
 });
 
-// Get All Restaurants with Filtering, Sorting and Pagination
+// Get All Restaurants with Filtering, Sorting and Pagination  // old work on local not on render
+// exports.getAllRestaurants = asyncHandler(async (req, res) => {
+//   try {
+//     ///--------------------------------
+//     const {
+//       page = 1,
+//       limit = 10,
+//       sort = "createdAt",
+//       order = "desc",
+//       city,
+//       cuisine,
+//       priceRange,
+//       isActive,
+//       featured,
+//       search,
+//       minRating,
+//       latitude,
+//       longitude,
+//       mxRadius,
+//     } = req.query;
+
+//     const pageNum = parseInt(page);
+//     const limitNum = parseInt(limit);
+//     const skip = (pageNum - 1) * limitNum;
+//     const sortOrder = order === "desc" ? -1 : 1;
+
+//     const filters = [];
+
+//     if (city) filters.push({ "address.city": city });
+
+//     if (cuisine) {
+//       filters.push({
+//         cuisine: { $in: Array.isArray(cuisine) ? cuisine : [cuisine] },
+//       });
+//     }
+
+//     if (priceRange) filters.push({ priceRange });
+
+//     if (req.query.hasOwnProperty("isActive")) {
+//       filters.push({ isActive: isActive === "true" });
+//     }
+
+//     if (featured !== undefined) {
+//       filters.push({ featured: featured === "true" });
+//     }
+
+//     if (minRating) {
+//       filters.push({ "ratings.average": { $gte: parseFloat(minRating) } });
+//     }
+
+//     if (search) {
+//       filters.push({
+//         $or: [
+//           { name: { $regex: search, $options: "i" } },
+//           { tags: { $in: [new RegExp(search, "i")] } },
+//           { "address.street": { $regex: search, $options: "i" } },
+//         ],
+//       });
+//     }
+
+//     // Base pipeline (geoNear must be first if present)
+//     const pipeline = [];
+
+//     if (latitude && longitude) {
+//       pipeline.push({
+//         $geoNear: {
+//           near: {
+//             type: "Point",
+//             coordinates: [parseFloat(longitude), parseFloat(latitude)],
+//           },
+//           distanceField: "distance",
+//           spherical: true,
+//           maxDistance: parseInt(mxRadius || 5000),
+//         },
+//       });
+//     }
+
+//     if (filters.length > 0) {
+//       pipeline.push({ $match: { $and: filters } });
+//     }
+
+//     // $facet for pagination + total count
+//     pipeline.push({
+//       $facet: {
+//         data: [
+//           { $sort: { [sort]: sortOrder } },
+//           { $skip: skip },
+//           { $limit: limitNum },
+//           {
+//             $project: {
+//               name: 1,
+//               address: 1,
+//               images: 1,
+//               description: 1,
+//               foodType: 1,
+//               isActive: 1,
+//               businessHours: 1,
+//               owner: 1,
+//               distance: 1,
+//             },
+//           },
+//         ],
+//         totalCount: [{ $count: "count" }],
+//       },
+//     });
+
+//     // Run query
+//     const result = await Restaurant.aggregate(pipeline);
+
+//     const restaurants = result[0].data;
+//     const total = result[0].totalCount[0]?.count || 0;
+//     ///--------------------------------
+//     const now = new Date();
+//     const currentDay = now.getDay();
+
+//     // Add isOpen field
+//     const parseTimeToMinutes = (timeStr) => {
+//       // Handles both "06:00", "6:00", "18:00", "6:00 PM", "06:00 AM", etc.
+//       if (!timeStr) return 0;
+//       let [time, modifier] = timeStr.split(' ');
+//       if (!modifier) modifier = '';
+//       let [hours, minutes] = time.split(':').map(Number);
+
+//       // If modifier exists, handle AM/PM
+//       if (modifier.toUpperCase() === 'PM' && hours !== 12) {
+//         hours += 12;
+//       }
+//       if (modifier.toUpperCase() === 'AM' && hours === 12) {
+//         hours = 0;
+//       }
+//       return hours * 60 + (minutes || 0);
+//     };
+
+
+//     const formattedRestaurants = restaurants.map((restaurant) => {
+//       const todayHours = restaurant.businessHours.find(
+//         (hour) => hour.day === currentDay
+//       );
+
+//       let isOpen = false;
+
+//       if (todayHours && !todayHours.isClosed) {
+//         const nowTime = now.getHours() * 60 + now.getMinutes(); // Current time in minutes
+
+//         const openTime = parseTimeToMinutes(todayHours.open);
+//         const closeTime = parseTimeToMinutes(todayHours.close);
+
+//         // Handle overnight hours (e.g., open: 22:00, close: 06:00)
+//         if (closeTime > openTime) {
+//           isOpen = nowTime >= openTime && nowTime < closeTime;
+//         } else if (closeTime < openTime) {
+//           // Overnight: open at night, close in the morning
+//           isOpen = nowTime >= openTime || nowTime < closeTime;
+//         } else {
+//           // openTime === closeTime means closed all day
+//           isOpen = false;
+//         }
+//       }
+
+//       return {
+//         ...restaurant,
+//         isOpen,
+//         businessHours: todayHours,
+//       };
+//     });
+
+//     //const total = await Restaurant.countDocuments();
+
+//     res.status(200).json({
+//       restaurants: formattedRestaurants,
+//       pagination: {
+//         total,
+//         page: parseInt(page),
+//         limit: parseInt(limit),
+//         pages: Math.ceil(total / parseInt(limit)),
+//       },
+//     });
+//   } catch (error) {
+//     console.error("Get all restaurants error:", error);
+//     res
+//       .status(500)
+//       .json({ message: "Internal Server Error", error: error.message });
+//   }
+// });
+
 exports.getAllRestaurants = asyncHandler(async (req, res) => {
   try {
-    ///--------------------------------
+    // Query Parameters
     const {
       page = 1,
       limit = 10,
@@ -288,7 +472,7 @@ exports.getAllRestaurants = asyncHandler(async (req, res) => {
       });
     }
 
-    // Base pipeline (geoNear must be first if present)
+    // Base pipeline
     const pipeline = [];
 
     if (latitude && longitude) {
@@ -309,7 +493,6 @@ exports.getAllRestaurants = asyncHandler(async (req, res) => {
       pipeline.push({ $match: { $and: filters } });
     }
 
-    // $facet for pagination + total count
     pipeline.push({
       $facet: {
         data: [
@@ -334,33 +517,31 @@ exports.getAllRestaurants = asyncHandler(async (req, res) => {
       },
     });
 
-    // Run query
+    // Run Aggregation
     const result = await Restaurant.aggregate(pipeline);
-
     const restaurants = result[0].data;
     const total = result[0].totalCount[0]?.count || 0;
-    ///--------------------------------
-    const now = new Date();
-    const currentDay = now.getDay();
 
-    // Add isOpen field
+    // IST Time Logic
+    const nowUtc = new Date();
+    const istOffsetMinutes = 5.5 * 60; // 330 mins
+    const istNow = new Date(nowUtc.getTime() + istOffsetMinutes * 60000);
+
+    const currentDay = istNow.getDay(); // ✅ Keep variable name same as before
+    const nowTime = istNow.getHours() * 60 + istNow.getMinutes(); // IST time in minutes
+
+    // Helper to convert time string to minutes
     const parseTimeToMinutes = (timeStr) => {
-      // Handles both "06:00", "6:00", "18:00", "6:00 PM", "06:00 AM", etc.
       if (!timeStr) return 0;
-      let [time, modifier] = timeStr.split(' ');
-      if (!modifier) modifier = '';
-      let [hours, minutes] = time.split(':').map(Number);
+      let [time, modifier] = timeStr.split(" ");
+      if (!modifier) modifier = "";
+      let [hours, minutes] = time.split(":").map(Number);
 
-      // If modifier exists, handle AM/PM
-      if (modifier.toUpperCase() === 'PM' && hours !== 12) {
-        hours += 12;
-      }
-      if (modifier.toUpperCase() === 'AM' && hours === 12) {
-        hours = 0;
-      }
+      if (modifier.toUpperCase() === "PM" && hours !== 12) hours += 12;
+      if (modifier.toUpperCase() === "AM" && hours === 12) hours = 0;
+
       return hours * 60 + (minutes || 0);
     };
-
 
     const formattedRestaurants = restaurants.map((restaurant) => {
       const todayHours = restaurant.businessHours.find(
@@ -370,19 +551,14 @@ exports.getAllRestaurants = asyncHandler(async (req, res) => {
       let isOpen = false;
 
       if (todayHours && !todayHours.isClosed) {
-        const nowTime = now.getHours() * 60 + now.getMinutes(); // Current time in minutes
-
         const openTime = parseTimeToMinutes(todayHours.open);
         const closeTime = parseTimeToMinutes(todayHours.close);
 
-        // Handle overnight hours (e.g., open: 22:00, close: 06:00)
         if (closeTime > openTime) {
           isOpen = nowTime >= openTime && nowTime < closeTime;
         } else if (closeTime < openTime) {
-          // Overnight: open at night, close in the morning
           isOpen = nowTime >= openTime || nowTime < closeTime;
         } else {
-          // openTime === closeTime means closed all day
           isOpen = false;
         }
       }
@@ -394,24 +570,24 @@ exports.getAllRestaurants = asyncHandler(async (req, res) => {
       };
     });
 
-    //const total = await Restaurant.countDocuments();
-
     res.status(200).json({
       restaurants: formattedRestaurants,
       pagination: {
         total,
-        page: parseInt(page),
-        limit: parseInt(limit),
-        pages: Math.ceil(total / parseInt(limit)),
+        page: pageNum,
+        limit: limitNum,
+        pages: Math.ceil(total / limitNum),
       },
     });
   } catch (error) {
     console.error("Get all restaurants error:", error);
-    res
-      .status(500)
-      .json({ message: "Internal Server Error", error: error.message });
+    res.status(500).json({
+      message: "Internal Server Error",
+      error: error.message,
+    });
   }
 });
+
 
 exports.updateRestaurant = asyncHandler(async (req, res) => {
   try {
