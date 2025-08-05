@@ -27,7 +27,7 @@ exports.addToCart = asyncHandler(async (req, res) => {
     }
 
     const restaurant = await Restaurant.findOne({ owner: product.restaurant })
-      .select("commissionRate packagingCharge owner")
+      .select("commissionRate packagingCharge owner businessHours")
       .populate("owner", "name email");
 
     product.restaurant = restaurant;
@@ -35,6 +35,14 @@ exports.addToCart = asyncHandler(async (req, res) => {
     if (!product.isAvailable || !product.restaurant) {
       return handleError(res, 400, "Product is not available for ordering");
     }
+
+    const isRestaurantOpen = restaurant.isOpen();
+
+    if (!isRestaurantOpen) {
+      return handleError(res, 400, "Restaurant is currently closed");
+    }
+
+    console.log("restaurant", isRestaurantOpen)
 
     // Find existing cart for user
     let cart = await Cart.findOne({ user: userId });

@@ -35,8 +35,9 @@ exports.createOrder = async (req, res) => {
       session.endSession();
       return res
         .status(400)
-        .json({ message: "No active cart found or cart is empty" });
+        .json({ message: "Something went wrong try refresh" });
     }
+
 
     // Get user to access saved addresses
     const user = await User.findById(userId).session(session);
