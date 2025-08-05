@@ -154,6 +154,7 @@ const AdminAddRestaurant = () => {
   };
 
   const hasError = (field) => (errors[field] ? true : false);
+  
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -178,10 +179,10 @@ const AdminAddRestaurant = () => {
         number: contactInfo.phones[0],
         password,
         location: {
-          type: "Point",
-          coordinates: [location.lat, location.lon], 
-          displayName: location.description, 
-        }, 
+          type: 'Point',
+          coordinates: [location.lon, location.lat],
+          displayName: location.description,
+        },
         description,
         foodType,
         priceRange,
