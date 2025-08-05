@@ -11,7 +11,7 @@ export default function ProductModal({ setIsPopup, product, cartItem = null, isE
   const [selectedAddons, setSelectedAddons] = useState([]);
   const [showFullDescription, setShowFullDescription] = useState(false);
   const user = useAuthStore((state) => state.user);
-  const { addCartFn , isAddCartPending } = useCart();
+  const { addCartFn, isAddCartPending } = useCart();
   const navigate = useNavigate();
 
   // Initialize selections from cart item if editing
@@ -76,14 +76,15 @@ export default function ProductModal({ setIsPopup, product, cartItem = null, isE
       navigate('/login');
       toast('Please login to add items to cart');
       return;
+    } else {
+      addCartFn(cartData, {
+        onSuccess: () => {
+          navigate('/user/cart');
+          onClose();
+        },
+      });
     }
 
-    addCartFn(cartData, {
-      onSuccess: () => {
-        navigate('/user/cart');
-        onClose();
-      },
-    });
   };
 
   // Calculate total price including size and addons
@@ -177,7 +178,7 @@ export default function ProductModal({ setIsPopup, product, cartItem = null, isE
           </div>
         </div>
       </div>
-     
+
     </div>
   );
 
@@ -282,11 +283,10 @@ export default function ProductModal({ setIsPopup, product, cartItem = null, isE
         {product?.attributes[0].options?.map((attribute) => (
           <div
             key={attribute._id}
-            className={`flex items-center justify-between py-3 px-3 border-b border-gray-100 ${
-              selectedSize?._id === attribute._id ? 'bg-orange-50 rounded' : ''
-            }`}
+            className={`flex items-center justify-between py-3 px-3 border-b border-gray-100 ${selectedSize?._id === attribute._id ? 'bg-orange-50 rounded' : ''
+              }`}
           >
-            <h1> {console.log(selectedSize?._id , attribute._id , attribute,"attribute")}</h1>
+            <h1> {console.log(selectedSize?._id, attribute._id, attribute, "attribute")}</h1>
             <div className="flex items-center gap-3">
               <input
                 type="radio"
@@ -359,9 +359,8 @@ export default function ProductModal({ setIsPopup, product, cartItem = null, isE
             {product.addons.map((addon) => (
               <div
                 key={addon._id}
-                className={`flex items-center justify-between py-3 px-3 border-b border-gray-100 ${
-                  isAddonSelected(addon._id) ? 'bg-green-50 rounded' : ''
-                }`}
+                className={`flex items-center justify-between py-3 px-3 border-b border-gray-100 ${isAddonSelected(addon._id) ? 'bg-green-50 rounded' : ''
+                  }`}
               >
                 <div className="flex items-center gap-2">
                   <input
