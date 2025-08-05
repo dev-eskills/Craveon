@@ -49,6 +49,7 @@ const AdminRestrauntPage = () => {
         }
         extractKey="restaurants"
         renderContent={(restaurants) => {
+          console.log(restaurants)
           return (
             <div className=" mx-auto my-5 py-6 px-1">
               <div className="grid grid-cols-1 gap-10">
@@ -90,29 +91,29 @@ const AdminRestrauntPage = () => {
                             )}
                             {(restaurant.foodType === 'Both' ||
                               restaurant.foodType === 'Non-Veg') && (
-                              <span
-                                className="bg-red-100 "
-                                title="Non-vegetarian options available"
-                              >
-                                <svg
-                                  width="24"
-                                  height="24"
-                                  viewBox="0 0 60 60"
-                                  xmlns="http://www.w3.org/2000/svg"
+                                <span
+                                  className="bg-red-100 "
+                                  title="Non-vegetarian options available"
                                 >
-                                  <rect
-                                    x="5"
-                                    y="5"
-                                    width="50"
-                                    height="50"
-                                    stroke="red"
-                                    strokeWidth="5"
-                                    fill="none"
-                                  />
-                                  <polygon points="30,15 15,40 45,40" fill="red" />
-                                </svg>
-                              </span>
-                            )}
+                                  <svg
+                                    width="24"
+                                    height="24"
+                                    viewBox="0 0 60 60"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                  >
+                                    <rect
+                                      x="5"
+                                      y="5"
+                                      width="50"
+                                      height="50"
+                                      stroke="red"
+                                      strokeWidth="5"
+                                      fill="none"
+                                    />
+                                    <polygon points="30,15 15,40 45,40" fill="red" />
+                                  </svg>
+                                </span>
+                              )}
                           </div>
                         </div>
                       </div>
@@ -123,11 +124,10 @@ const AdminRestrauntPage = () => {
                           <h3 className="text-2xl font-bold text-gray-900">{restaurant.name}</h3>
                           <div className="flex items-center gap-1">
                             <span
-                              className={`flex items-center ${
-                                restaurant.isActive
-                                  ? 'text-green-700 bg-green-100'
-                                  : 'text-black bg-gray-200'
-                              } py-1 px-3 rounded-full text-sm font-medium`}
+                              className={`flex items-center ${restaurant.isActive
+                                ? 'text-green-700 bg-green-100'
+                                : 'text-black bg-gray-200'
+                                } py-1 px-3 rounded-full text-sm font-medium`}
                             >
                               {restaurant.isActive ? (
                                 <ShieldCheck size={18} />
@@ -137,14 +137,13 @@ const AdminRestrauntPage = () => {
                               {restaurant.isActive ? 'Active' : 'Deactive'}
                             </span>
                             <span
-                              className={`flex items-center ${
-                                !restaurant.businessHours?.isClosed
-                                  ? 'text-green-700 bg-green-100'
-                                  : 'text-red-700 bg-red-100'
-                              } py-1 px-3 rounded-full text-sm font-medium`}
+                              className={`flex items-center ${restaurant?.isOpen
+                                ? 'text-green-700 bg-green-100'
+                                : 'text-red-700 bg-red-100'
+                                } py-1 px-3 rounded-full text-sm font-medium`}
                             >
                               <Clock className="w-4 mr-1" />
-                              {!restaurant.businessHours?.isClosed ? 'Open' : 'Closed'}
+                              {restaurant.isOpen ? 'Open' : 'Closed'}
                             </span>
                           </div>
                         </div>
