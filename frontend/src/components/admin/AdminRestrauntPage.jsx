@@ -49,7 +49,6 @@ const AdminRestrauntPage = () => {
         }
         extractKey="restaurants"
         renderContent={(restaurants) => {
-          console.log(restaurants)
           return (
             <div className=" mx-auto my-5 py-6 px-1">
               <div className="grid grid-cols-1 gap-10">
@@ -64,7 +63,7 @@ const AdminRestrauntPage = () => {
                         <img
                           src={restaurant.images.logo}
                           alt={restaurant.name}
-                          className="w-full h-full object-fit "
+                          className="w-full h-52 object-fit "
                         />
                         <div className="absolute top-3 right-3">
                           <div className="flex space-x-1">
