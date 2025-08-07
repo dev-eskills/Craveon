@@ -42,8 +42,6 @@ exports.addToCart = asyncHandler(async (req, res) => {
       return handleError(res, 400, "Restaurant is currently closed");
     }
 
-    console.log("restaurant", isRestaurantOpen)
-
     // Find existing cart for user
     let cart = await Cart.findOne({ user: userId });
 

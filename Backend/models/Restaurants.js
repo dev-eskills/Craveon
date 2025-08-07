@@ -129,13 +129,33 @@ restaurantSchema.virtual("fullAddress").get(function () {
 });
 
 // Method to check if restaurant is open at given time
+// restaurantSchema.methods.isOpen = function (date = new Date()) {
+//   const day = date.getDay();
+//   const hours = this.businessHours.find((h) => h.day === day);
+
+//   if (!hours || hours.isClosed) return false;
+
+//   const currentTime = date.getHours() * 60 + date.getMinutes();
+//   const [openHour, openMinute] = hours.open.split(":").map(Number);
+//   const [closeHour, closeMinute] = hours.close.split(":").map(Number);
+
+//   const openTime = openHour * 60 + openMinute;
+//   const closeTime = closeHour * 60 + closeMinute;
+
+//   return currentTime >= openTime && currentTime <= closeTime;
+// };
+
+
 restaurantSchema.methods.isOpen = function (date = new Date()) {
-  const day = date.getDay();
+  // Convert to IST
+  const istDate = new Date(date.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+
+  const day = istDate.getDay();
   const hours = this.businessHours.find((h) => h.day === day);
 
   if (!hours || hours.isClosed) return false;
 
-  const currentTime = date.getHours() * 60 + date.getMinutes();
+  const currentTime = istDate.getHours() * 60 + istDate.getMinutes();
   const [openHour, openMinute] = hours.open.split(":").map(Number);
   const [closeHour, closeMinute] = hours.close.split(":").map(Number);
 
