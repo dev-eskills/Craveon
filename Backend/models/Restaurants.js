@@ -155,14 +155,23 @@ restaurantSchema.methods.isOpen = function (date = new Date()) {
 
   if (!hours || hours.isClosed) return false;
 
-  const currentTime = istDate.getHours() * 60 + istDate.getMinutes();
-  const [openHour, openMinute] = hours.open.split(":").map(Number);
-  const [closeHour, closeMinute] = hours.close.split(":").map(Number);
+  // Function to convert 'hh:mm AM/PM' to minutes
+  const convertToMinutes = (timeStr) => {
+    const [time, modifier] = timeStr.split(" ");
+    let [hour, minute] = time.split(":").map(Number);
 
-  const openTime = openHour * 60 + openMinute;
-  const closeTime = closeHour * 60 + closeMinute;
+    if (modifier === "PM" && hour !== 12) hour += 12;
+    if (modifier === "AM" && hour === 12) hour = 0;
+
+    return hour * 60 + minute;
+  };
+
+  const openTime = convertToMinutes(hours.open);
+  const closeTime = convertToMinutes(hours.close);
+  const currentTime = istDate.getHours() * 60 + istDate.getMinutes();
 
   return currentTime >= openTime && currentTime <= closeTime;
 };
+
 
 module.exports = mongoose.model("Restaurant", restaurantSchema);
