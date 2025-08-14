@@ -5,18 +5,29 @@ const expressAsyncHandler = require("express-async-handler");
 
 const generateOTP = () => Math.floor(1000 + Math.random() * 9000).toString();
 
+
 const sendSMS = async (phone, otp) => {
-  const response = await axios.get("https://www.fast2sms.com/dev/bulkV2", {
-    params: {
-      authorization: process.env.SMS_KEY,
-      flash: "0",
-      route: "otp",
-      numbers: phone,
-      variables_values: otp,
-    },
-  });
-  return response.status === 200;
+  try {
+    const response = await axios.get("https://www.fast2sms.com/dev/bulkV2", {
+      params: {
+        authorization: process.env.SMS_KEY, // Your API key
+        route: "dlt",                       // DLT route
+        sender_id: "CRAVEO",                // Your sender ID
+        message: "194835",                  // Template ID from DLT
+        variables_values: `${otp}|`,        // Values for template vars
+        flash: "0",
+        numbers: phone,                     // Recipient phone number(s)
+        // schedule_time: "2025-08-14 14:30" // Optional: schedule sending
+      },
+    });
+
+    return response.status === 200;
+  } catch (err) {
+    console.error("SMS send error:", err);
+    return false;
+  }
 };
+
 
 const verifyOtpToken = async (phone, token) => {
   const data = await jwt.verify(token, process.env.JWT_SECRET);
