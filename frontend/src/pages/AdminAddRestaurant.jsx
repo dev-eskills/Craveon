@@ -3,7 +3,6 @@ import useRestaurantStore from '../stores/addRestaurantStore';
 import useRestaurants from '../hooks/useRestaurants';
 import { motion } from 'framer-motion';
 import { useLocation, useSearchParams } from 'react-router-dom';
-import { X } from 'lucide-react';
 import GoogleMapMarker from '../components/categoryDetail/GoogleMapMarker';
 import Location from '../components/navbar/Location';
 import { localLocation } from '../stores/getLocalLocation';
@@ -94,47 +93,112 @@ const AdminAddRestaurant = () => {
         isValid = false;
       }
     } else if (tabIndex === 2) {
-      if (!contactInfo.phones[0]?.trim()) {
-        newErrors.phone = 'Phone number is required';
+      const phonePattern = /^\d{10}$/;
+      const emailPattern = /\S+@\S+\.\S+/;
+
+      if (!contactInfo.phones[0]?.trim() || !phonePattern.test(contactInfo.phones[0])) {
+        newErrors.phone = 'Valid 10-digit phone number is required';
         isValid = false;
       }
-      if (contactInfo.email && !/\S+@\S+\.\S+/.test(contactInfo.email)) {
+
+      if (contactInfo.email && !emailPattern.test(contactInfo.email)) {
         newErrors.email = 'Invalid email format';
         isValid = false;
       }
+    } else if (tabIndex === 3) {
+      if (!deliverySettings.isDeliveryAvailable) {
+        newErrors.isDeliveryAvailable = 'Delivery availability is required';
+        isValid = false;
+      }
+      if (!deliverySettings.deliveryRadius) {
+        newErrors.deliveryRadius = 'Delivery radius is required';
+        isValid = false;
+      }
+      if (!deliverySettings.minimumOrderAmount) {
+        newErrors.minimumOrderAmount = 'Minimum order amount is required';
+        isValid = false;
+      }
+      if (!deliverySettings.deliveryFee) {
+        newErrors.deliveryFee = 'Delivery fee is required';
+        isValid = false;
+      }
+      if (!paymentOptions.acceptsCash) {
+        newErrors.acceptsCash = 'Cash payment option is required';
+        isValid = false;
+      }
+    } else if (tabIndex === 4) {
+      if (!additionalSettings.isActive) {
+        newErrors.isActive = 'Restaurant should be active ';
+        isValid = false;
+      }
     } else if (tabIndex === 5) {
-      // Bank Details
+      // Account Name (basic required validation already present)
       if (!additionalSettings.bankDetails.accountName.trim()) {
         newErrors.accountName = 'Account Name is required';
         isValid = false;
       }
-      if (!additionalSettings.bankDetails.accountNumber.trim()) {
+
+      // Account Number: 10, 11, 16 or 18 digits only
+      const accNum = additionalSettings.bankDetails.accountNumber.trim();
+      if (!accNum) {
         newErrors.accountNumber = 'Account Number is required';
         isValid = false;
-      }
-      if (!additionalSettings.bankDetails.ifscCode.trim()) {
-        newErrors.ifscCode = 'IFSC Code is required';
+      } else if (!/^\d{10}$|^\d{11}$|^\d{16}$|^\d{18}$/.test(accNum)) {
+        newErrors.accountNumber = 'Account Number must be 10, 11, 16 or 18 digits';
         isValid = false;
       }
-      if (!additionalSettings.bankDetails.bankName.trim()) {
+
+      // IFSC Code: exactly 11 alphanumeric characters
+      const ifsc = additionalSettings.bankDetails.ifscCode.trim();
+      if (!ifsc) {
+        newErrors.ifscCode = 'IFSC Code is required';
+        isValid = false;
+      } else if (!/^[A-Za-z]{4}[0-9A-Za-z]{7}$/.test(ifsc)) {
+        newErrors.ifscCode = 'Invalid IFSC Code format (must be 11 alphanumeric characters)';
+        isValid = false;
+      }
+
+      // Bank Name: only alphabets and spaces, length 3–50
+      const bankName = additionalSettings.bankDetails.bankName.trim();
+      if (!bankName) {
         newErrors.bankName = 'Bank Name is required';
+        isValid = false;
+      } else if (!/^[A-Za-z\s]{3,50}$/.test(bankName)) {
+        newErrors.bankName = 'Bank Name should be 3–50 letters only';
         isValid = false;
       }
     } else if (tabIndex === 6) {
-      // Tax Information
-      if (!additionalSettings.taxInfo.gstin.trim()) {
+      // GSTIN: Required + 15-character alphanumeric with format (e.g., 22ABCDE1234F1Z5)
+      const gstin = additionalSettings.taxInfo.gstin.trim();
+      if (!gstin) {
         newErrors.gstin = 'GSTIN is required';
         isValid = false;
-      }
-      if (!additionalSettings.taxInfo.vatNumber.trim()) {
-        newErrors.vatNumber = 'VAT Number is required';
+      } else if (!/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}[Z]{1}[0-9A-Z]{1}$/.test(gstin)) {
+        newErrors.gstin = 'Invalid GSTIN format';
         isValid = false;
       }
-      if (!additionalSettings.taxInfo.panNumber.trim()) {
+
+      // VAT Number: Required + alphanumeric, 8 to 15 characters
+      const vat = additionalSettings.taxInfo.vatNumber.trim();
+      if (!vat) {
+        newErrors.vatNumber = 'VAT Number is required';
+        isValid = false;
+      } else if (!/^[A-Za-z0-9]{8,15}$/.test(vat)) {
+        newErrors.vatNumber = 'VAT Number must be 8 to 15 alphanumeric characters';
+        isValid = false;
+      }
+
+      // PAN Number: Required + valid format (e.g., ABCDE1234F)
+      const pan = additionalSettings.taxInfo.panNumber.trim().toUpperCase();
+      if (!pan) {
         newErrors.panNumber = 'PAN Number is required';
+        isValid = false;
+      } else if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(pan)) {
+        newErrors.panNumber = 'Invalid PAN Number format';
         isValid = false;
       }
     }
+
     setErrors(newErrors);
     return isValid;
   };
@@ -153,7 +217,7 @@ const AdminAddRestaurant = () => {
   };
 
   const hasError = (field) => (errors[field] ? true : false);
-  
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -449,8 +513,9 @@ const AdminAddRestaurant = () => {
                 className={`w-full px-3 py-2 border ${hasError('phone') ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500`}
                 value={contactInfo.phones[0]}
                 onChange={(e) => {
+                  const newValue = e.target.value.replace(/\D/g, '').slice(0, 10); // Allow only digits and limit to 10 characters
                   const newPhones = [...contactInfo.phones];
-                  newPhones[0] = e.target.value;
+                  newPhones[0] = newValue;
                   updateContactInfo('phones', newPhones);
                 }}
                 required
@@ -571,7 +636,7 @@ const AdminAddRestaurant = () => {
             </div>
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Packaging Charge ($)
+                Packaging Charge (₹)
               </label>
               <input
                 type="number"
@@ -582,23 +647,11 @@ const AdminAddRestaurant = () => {
                 }
               />
             </div>
-            {/* <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Preparation Time (minutes)
-              </label>
-              <input
-                type="number"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                value={additionalSettings.preparationTime}
-                onChange={(e) =>
-                  updateAdditionalSettings('preparationTime', Number(e.target.value))
-                }
-              />
-            </div> */}
             <div>
               <label className="flex items-center text-sm font-medium text-gray-700">
                 <input
                   type="checkbox"
+                  required
                   className="h-4 w-4 mr-2 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
                   checked={additionalSettings.isActive}
                   onChange={(e) => updateAdditionalSettings('isActive', e.target.checked)}
