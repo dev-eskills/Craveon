@@ -12,7 +12,6 @@ const UserOrderHistory = () => {
   const { id } = useParams();
   const [expanded, setExpanded] = useState(null);
   const { orders, orderAssignFn , isOrdersLoading} = useOrder(null, null, null, '', null, null, id);
-  console.log(orders , "orders ")
 
   const toggleExpand = (id) => {
     setExpanded(expanded === id ? null : id);

@@ -37,7 +37,6 @@ export const ProtectCart = ({ children }) => {
 
   // Show loading state while fetching cart data
   if (cartItemsLoading) {
-    console.log('loading state'); 
     return (
       <div className="flex items-center justify-center min-h-[200px]">
         <Loader className="animate-spin h-8 w-8 text-[#ff6900]" />

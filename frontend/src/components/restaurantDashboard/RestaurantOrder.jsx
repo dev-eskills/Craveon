@@ -9,8 +9,7 @@ const RestaurantOrders = ({ isDashboard = false }) => {
   const user = useAuthStore((state) => state.user);
   const { restaurantOrder, orderAssignFn, restaurantOrderLoading } = useOrder(user?.id);
 
-
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const [statusMap, setStatusMap] = useState({});
 
@@ -57,50 +56,54 @@ const RestaurantOrders = ({ isDashboard = false }) => {
               </tr>
             </thead>
             <tbody>
-              {(isDashboard ? restaurantOrder?.orders?.slice(0, 5) : restaurantOrder?.orders)?.map((order, index) => (
-                <tr key={index} className="border-t">
-                  <td className="p-4 font-medium">{order?.orderNumber}</td>
-                  <td className="p-4">{order?.user.name}</td>
-                  <td className="p-4">{order?.items.length}items</td>
-                  <td className="p-4">₹{order?.finalTotal}</td>
-                  <td className="p-4">
-                    <td className="p-2">
-                      <select
-                        value={statusMap[order._id] || order.status}
-                        onChange={(e) => handleStatusChange(e.target.value, order._id)}
-                        className="border border-gray-300 rounded px-2 py-1 text-sm"
-                      >
-                        {!['ACCEPTED', 'REJECTED', 'PREPARING', 'READY_FOR_PICKUP'].includes(
-                          order.status
-                        ) && <option value={order.status}>{order?.status}</option>}
-                        {['ACCEPTED', 'REJECTED', 'PREPARING', 'READY_FOR_PICKUP'].map((status) => (
-                          <option key={status} value={status}>
-                            {status?.charAt(0) + status?.slice(1)}
-                          </option>
-                        ))}
-                      </select>
+              {(isDashboard ? restaurantOrder?.orders?.slice(0, 5) : restaurantOrder?.orders)?.map(
+                (order, index) => (
+                  <tr key={index} className="border-t">
+                    <td className="p-4 font-medium">{order?.orderNumber}</td>
+                    <td className="p-4">{order?.user?.name}</td>
+                    <td className="p-4">{order?.items.length}items</td>
+                    <td className="p-4">₹{order?.finalTotal}</td>
+                    <td className="p-4">
+                      <td className="p-2">
+                        <select
+                          value={statusMap[order._id] || order.status}
+                          onChange={(e) => handleStatusChange(e.target.value, order._id)}
+                          className="border border-gray-300 rounded px-2 py-1 text-sm"
+                        >
+                          {!['ACCEPTED', 'REJECTED', 'PREPARING', 'READY_FOR_PICKUP'].includes(
+                            order.status
+                          ) && <option value={order.status}>{order?.status}</option>}
+                          {['ACCEPTED', 'REJECTED', 'PREPARING', 'READY_FOR_PICKUP'].map(
+                            (status) => (
+                              <option key={status} value={status}>
+                                {status?.charAt(0) + status?.slice(1)}
+                              </option>
+                            )
+                          )}
+                        </select>
+                      </td>
                     </td>
-                  </td>
-                  <td className="p-4">
-                    {new Date(order?.createdAt).toLocaleDateString('en-US', {
-                      day: '2-digit',
-                      month: 'short',
-                      year: 'numeric',
-                    })}
-                  </td>
+                    <td className="p-4">
+                      {new Date(order?.createdAt).toLocaleDateString('en-US', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric',
+                      })}
+                    </td>
 
-                  <td className="p-4">
-                    <button
-                      className="text-blue-500 hover:underline mr-2"
-                      onClick={() => navigate(`/restaurant/orders/${order._id}`)}
-                    >
-                      View
-                    </button>
+                    <td className="p-4">
+                      <button
+                        className="text-blue-500 hover:underline mr-2"
+                        onClick={() => navigate(`/restaurant/orders/${order._id}`)}
+                      >
+                        View
+                      </button>
 
-                    {/* <button className="text-green-500 hover:underline">Update</button> */}
-                  </td>
-                </tr>
-              ))}
+                      {/* <button className="text-green-500 hover:underline">Update</button> */}
+                    </td>
+                  </tr>
+                )
+              )}
             </tbody>
           </table>
         </div>
