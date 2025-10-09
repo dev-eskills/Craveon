@@ -8,7 +8,6 @@ const UserOrders = () => {
   const [expanded, setExpanded] = useState(null);
   const { orders , isOrdersLoading} = useOrder();
   
-  console.log('isOrdersLoading:', isOrdersLoading);
   const toggleExpand = (id) => {
     setExpanded(expanded === id ? null : id);
   };

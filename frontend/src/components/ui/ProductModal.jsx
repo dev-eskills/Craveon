@@ -286,7 +286,7 @@ export default function ProductModal({ setIsPopup, product, cartItem = null, isE
             className={`flex items-center justify-between py-3 px-3 border-b border-gray-100 ${selectedSize?._id === attribute._id ? 'bg-orange-50 rounded' : ''
               }`}
           >
-            <h1> {console.log(selectedSize?._id, attribute._id, attribute, "attribute")}</h1>
+            
             <div className="flex items-center gap-3">
               <input
                 type="radio"

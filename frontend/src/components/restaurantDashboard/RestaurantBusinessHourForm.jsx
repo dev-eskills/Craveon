@@ -10,7 +10,6 @@ export default function BusinessHoursForm() {
   // Default business hours as fallback
   const { updateBusinussHourFn, isUpdatingBusinessHour } = useRestaurants();
   const {businessHoursData} = useBussinessHours(user.id)
-  console.log(businessHoursData, 'hour');
   const defaultBusinessHours = [
     { day: 0, open: '10:00', close: '22:00', isClosed: false, displayFormat: '10 AM - 10 PM' },
     { day: 1, open: '10:00', close: '22:00', isClosed: false, displayFormat: '10 AM - 10 PM' },

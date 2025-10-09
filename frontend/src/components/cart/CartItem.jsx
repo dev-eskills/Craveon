@@ -15,7 +15,6 @@ const CartItem = ({ item }) => {
     removeCartFn({ productId: item.product._id });
   };
 
-  console.log(item , "item")
   return (
     <div className="flex items-start py-4 border-b border-gray-200 last:border-0">
       <div className="w-20 h-20 flex-shrink-0 rounded overflow-hidden mr-4 ">

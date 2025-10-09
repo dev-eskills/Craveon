@@ -31,7 +31,6 @@ const LocationList = ({ data = [] }) => {
   };
 
   const handleUseMyLocation = () => {
-    console.log('Use my location clicked');
 
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
