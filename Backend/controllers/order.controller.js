@@ -315,9 +315,8 @@ exports.getOrderById = async (req, res) => {
 exports.getUserOrders = async (req, res) => {
   try {
     const userId = req.params.id;
-    console.log(userId);
     const orders = await Order.find({ user: userId })
-      .sort({ createdAt: -1 }) // latest first
+      .sort({ createdAt: -1 }) 
       .populate("restaurant", "name address")
       .populate("deliveryPartner", "name phone")
       .populate("items.product");

@@ -19,7 +19,8 @@ const deliveryPartnerController = {
       })
         .populate("restaurant", "name address location contactInfo")
         .populate("user", "name email number")
-        .populate("items.product");
+        .populate("items.product")
+        .sort({createdAt : -1})
 
       // Filter orders by distance if location provided
       let filteredOrders = orders;
