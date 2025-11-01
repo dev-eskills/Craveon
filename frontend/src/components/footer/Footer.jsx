@@ -39,10 +39,13 @@ const Footer = () => {
                 </a>
               </li>
               <li>
-                <a href="#" className="group relative inline-block hover:text-[#FF6900]">
+                <Link
+                  to="/help"
+                  className="group relative inline-block hover:text-[#FF6900]"
+                >
                   Help
                   <span className="absolute left-0 bottom-0 w-0 h-[2px] bg-[#FF6900] transition-all duration-300 group-hover:w-full"></span>
-                </a>
+                </Link>
               </li>
               <li>
                 <a href="#" className="group relative inline-block hover:text-[#FF6900]">
@@ -79,7 +82,7 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <a href="#" className="group relative inline-block hover:text-[#FF6900]">
+                <a href="/about-us" className="group relative inline-block hover:text-[#FF6900]">
                   About Us
                   <span className="absolute left-0 bottom-0 w-0 h-[2px] bg-[#FF6900] transition-all duration-300 group-hover:w-full"></span>
                 </a>

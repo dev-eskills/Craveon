@@ -51,6 +51,8 @@ import CancellationAndRefund from '../components/footer/cancellation-and-refund'
 import ContactUs from '../components/footer/contact-us';
 import AdminSettings from '../components/admin/AdminSettings';
 import SingleOrder from '../components/restaurantDashboard/SingleOrder';
+import AboutUs from '../components/footer/aboutUs';
+import Help from '../components/footer/help';
 // import UserOrders from '../components/admin/UserOrders';
 
 export const router = createBrowserRouter([
@@ -78,6 +80,15 @@ export const router = createBrowserRouter([
     path: 'contact-us',
     element: <ContactUs />,
   },
+  {
+    path:'about-us',
+    element: <AboutUs/>
+  },
+  {
+    path: 'help',
+    element : <Help/>
+  },
+ 
   // User Application Routes
   {
     path: '/user',
