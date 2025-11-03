@@ -265,18 +265,17 @@ const deliveryPartnerController = {
         });
       }
 
-      // Send delivery OTP via Fast2SMS (same service used in registration)
+      // Send delivery OTP via Fast2SMS as plain text message
       try {
         const customer = await User.findById(order.user, 'number');
         if (customer && customer.number) {
+          const textMessage = `Your order #${order.orderNumber} is out for delivery. Delivery OTP: ${order.deliveryOTP}. Do not share this OTP.`;
           await axios.get('https://www.fast2sms.com/dev/bulkV2', {
             params: {
               authorization: process.env.SMS_KEY,
-              route: 'dlt',
-              sender_id: 'CRAVEO',
-              message: '194835', // DLT template ID used for OTP
-              variables_values: `${order.deliveryOTP}|`,
-              flash: '0',
+              language: 'english',
+              route: process.env.SMS_ROUTE || 'q',
+              message: textMessage,
               numbers: customer.number,
             },
           });
