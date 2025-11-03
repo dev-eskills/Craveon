@@ -16,7 +16,7 @@ app.use(cookieParser());
 app.use(helmet()); // Secure HTTP headers
 app.use(
   cors({
-    origin: process.env.ALLOWED_ORIGINS?.split(",") || "*",
+    origin: "*",
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization", "position"],

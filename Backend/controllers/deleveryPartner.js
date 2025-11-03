@@ -1,8 +1,9 @@
-const Order = require("../models/Order");
-const User = require("../models/user");
-const Restaurant = require("../models/Restaurants");
+const Order = require('../models/Order');
+const User = require('../models/user');
+const Restaurant = require('../models/Restaurants');
 // const { sendNotification } = require("../utils/notificationService");
-const { calculateDistance } = require("../utils/locationUtils");
+const { calculateDistance } = require('../utils/locationUtils');
+const { default: axios } = require('axios');
 
 // Controller for Delivery Partners to manage order pickups and deliveries
 const deliveryPartnerController = {
@@ -14,13 +15,13 @@ const deliveryPartnerController = {
 
       // Find orders that are ready for pickup and not assigned
       const orders = await Order.find({
-        status: { $in: ["ASSIGNED", "PICKED_UP", "OUT_FOR_DELIVERY"] },
+        status: { $in: ['ASSIGNED', 'PICKED_UP', 'OUT_FOR_DELIVERY'] },
         deliveryPartner: deliveryPartnerId,
       })
-        .populate("restaurant", "name address location contactInfo")
-        .populate("user", "name email number")
-        .populate("items.product")
-        .sort({createdAt : -1})
+        .populate('restaurant', 'name address location contactInfo')
+        .populate('user', 'name email number')
+        .populate('items.product')
+        .sort({ createdAt: -1 });
 
       // Filter orders by distance if location provided
       let filteredOrders = orders;
@@ -51,7 +52,7 @@ const deliveryPartnerController = {
     } catch (error) {
       res.status(500).json({
         success: false,
-        message: "Error fetching available orders",
+        message: 'Error fetching available orders',
         error: error.message,
       });
     }
@@ -69,7 +70,7 @@ const deliveryPartnerController = {
       } else {
         // By default, fetch active orders only
         query.status = {
-          $in: ["DELIVERED"],
+          $in: ['DELIVERED'],
         };
       }
 
@@ -78,8 +79,8 @@ const deliveryPartnerController = {
         limit: parseInt(limit),
         sort: { createdAt: -1 },
         populate: [
-          { path: "user", select: "name email phone deliveryAddress" },
-          { path: "restaurant", select: "name address location phone" },
+          { path: 'user', select: 'name email phone deliveryAddress' },
+          { path: 'restaurant', select: 'name address location phone' },
         ],
       };
 
@@ -92,7 +93,7 @@ const deliveryPartnerController = {
     } catch (error) {
       res.status(500).json({
         success: false,
-        message: "Error fetching orders",
+        message: 'Error fetching orders',
         error: error.message,
       });
     }
@@ -107,21 +108,21 @@ const deliveryPartnerController = {
       // Find order that is ready for pickup and not assigned
       const order = await Order.findOne({
         _id: orderId,
-        status: "ASSIGNED",
+        status: 'ASSIGNED',
         deliveryPartner: deliveryPartnerId,
       });
 
       if (!order) {
         return res.status(404).json({
           success: false,
-          message: "Order not found or already assigned",
+          message: 'Order not found or already assigned',
         });
       }
 
       // Check if delivery partner has any active orders
       const activeOrdersCount = await Order.countDocuments({
         deliveryPartner: deliveryPartnerId,
-        status: { $in: ["ASSIGNED", "PICKED_UP", "OUT_FOR_DELIVERY"] },
+        status: { $in: ['ASSIGNED', 'PICKED_UP', 'OUT_FOR_DELIVERY'] },
       });
 
       // Optional: Limit active orders per delivery partner
@@ -135,13 +136,13 @@ const deliveryPartnerController = {
 
       // Assign order to delivery partner
       await order.assignToDeliveryPartner(deliveryPartnerId);
-      order.status = "PICKED_UP";
+      order.status = 'PICKED_UP';
       await order.save();
 
       // Fetch restaurant details for the response
       const restaurant = await Restaurant.findById(
         order.restaurant,
-        "name address phone location"
+        'name address phone location'
       );
 
       // // Send notification to restaurant
@@ -165,7 +166,7 @@ const deliveryPartnerController = {
 
       res.status(200).json({
         success: true,
-        message: "Order assigned successfully",
+        message: 'Order assigned successfully',
         data: {
           order,
           restaurant,
@@ -175,7 +176,7 @@ const deliveryPartnerController = {
     } catch (error) {
       res.status(500).json({
         success: false,
-        message: "Error accepting order",
+        message: 'Error accepting order',
         error: error.message,
       });
     }
@@ -191,13 +192,13 @@ const deliveryPartnerController = {
       const order = await Order.findOne({
         _id: orderId,
         deliveryPartner: deliveryPartnerId,
-        status: "ASSIGNED",
+        status: 'ASSIGNED',
       });
 
       if (!order) {
         return res.status(404).json({
           success: false,
-          message: "Order not found or not in correct status",
+          message: 'Order not found or not in correct status',
         });
       }
 
@@ -221,13 +222,13 @@ const deliveryPartnerController = {
 
       res.status(200).json({
         success: true,
-        message: "Pickup verified successfully",
+        message: 'Pickup verified successfully',
         data: order,
       });
     } catch (error) {
       res.status(500).json({
         success: false,
-        message: "Error verifying pickup",
+        message: 'Error verifying pickup',
         error: error.message,
       });
     }
@@ -242,20 +243,20 @@ const deliveryPartnerController = {
       const order = await Order.findOne({
         _id: orderId,
         deliveryPartner: deliveryPartnerId,
-        status: "PICKED_UP",
+        status: 'PICKED_UP',
       });
 
       if (!order) {
         return res.status(404).json({
           success: false,
-          message: "Order not found or not in correct status",
+          message: 'Order not found or not in correct status',
         });
       }
 
       // Mark order as out for delivery
       try {
         // await order.markOutForDelivery(deliveryPartnerId);
-        order.status = "OUT_FOR_DELIVERY";
+        order.status = 'OUT_FOR_DELIVERY';
         await order.save();
       } catch (error) {
         return res.status(400).json({
@@ -264,26 +265,39 @@ const deliveryPartnerController = {
         });
       }
 
-      // Send notification to customer with estimated delivery time
-      // await sendNotification({
-      //   userId: order.user,
-      //   title: "Order Out For Delivery",
-      //   body: `Your order #${order.orderNumber} is on its way! Your delivery OTP is ${order.deliveryOTP}`,
-      //   data: {
-      //     orderId: order._id.toString(),
-      //     deliveryOTP: order.deliveryOTP,
-      //   },
-      // });
+      // Send delivery OTP via Fast2SMS (same service used in registration)
+      try {
+        const customer = await User.findById(order.user, 'number');
+        if (customer && customer.number) {
+          await axios.get('https://www.fast2sms.com/dev/bulkV2', {
+            params: {
+              authorization: process.env.SMS_KEY,
+              route: 'dlt',
+              sender_id: 'CRAVEO',
+              message: '194835', // DLT template ID used for OTP
+              variables_values: `${order.deliveryOTP}|`,
+              flash: '0',
+              numbers: customer.number,
+            },
+          });
+        }
+      } catch (err) {
+        console.error(
+          'Failed to send delivery OTP SMS:',
+          err?.response?.data || err?.message || err
+        );
+        // Do not fail the main flow if SMS sending fails
+      }
 
       res.status(200).json({
         success: true,
-        message: "Order marked as out for delivery",
+        message: 'Order marked as out for delivery',
         data: order,
       });
     } catch (error) {
       res.status(500).json({
         success: false,
-        message: "Error updating order status",
+        message: 'Error updating order status',
         error: error.message,
       });
     }
@@ -299,20 +313,20 @@ const deliveryPartnerController = {
       const order = await Order.findOne({
         _id: orderId,
         deliveryPartner: deliveryPartnerId,
-        status: "OUT_FOR_DELIVERY",
+        status: 'OUT_FOR_DELIVERY',
       });
 
       if (!order) {
         return res.status(404).json({
           success: false,
-          message: "Order not found or not in correct status",
+          message: 'Order not found or not in correct status',
         });
       }
 
       // Verify delivery using the order method
       try {
         // await order.verifyDelivery(null, deliveryPartnerId);
-        order.status = "DELIVERED";
+        order.status = 'DELIVERED';
         await order.save();
       } catch (error) {
         return res.status(400).json({
@@ -339,13 +353,13 @@ const deliveryPartnerController = {
 
       res.status(200).json({
         success: true,
-        message: "Delivery completed successfully",
+        message: 'Delivery completed successfully',
         data: order,
       });
     } catch (error) {
       res.status(500).json({
         success: false,
-        message: "Error verifying delivery",
+        message: 'Error verifying delivery',
         error: error.message,
       });
     }
@@ -366,7 +380,7 @@ const deliveryPartnerController = {
       if (!order) {
         return res.status(404).json({
           success: false,
-          message: "Order not found",
+          message: 'Order not found',
         });
       }
 
@@ -403,13 +417,13 @@ const deliveryPartnerController = {
 
       res.status(200).json({
         success: true,
-        message: "Delivery issue reported successfully",
+        message: 'Delivery issue reported successfully',
         data: order,
       });
     } catch (error) {
       res.status(500).json({
         success: false,
-        message: "Error reporting issue",
+        message: 'Error reporting issue',
         error: error.message,
       });
     }
@@ -425,21 +439,21 @@ const deliveryPartnerController = {
       const order = await Order.findOne({
         _id: orderId,
         deliveryPartner: deliveryPartnerId,
-        status: { $in: ["PICKED_UP", "OUT_FOR_DELIVERY"] },
+        status: { $in: ['PICKED_UP', 'OUT_FOR_DELIVERY'] },
       });
 
       if (!order) {
         return res.status(404).json({
           success: false,
-          message: "Order not found or not in active delivery",
+          message: 'Order not found or not in active delivery',
         });
       }
 
       // Update delivery partner's location in the database
       // This can be stored in a separate collection for real-time tracking
       await User.findByIdAndUpdate(deliveryPartnerId, {
-        "location.coordinates": [parseFloat(longitude), parseFloat(latitude)],
-        "location.updatedAt": new Date(),
+        'location.coordinates': [parseFloat(longitude), parseFloat(latitude)],
+        'location.updatedAt': new Date(),
       });
 
       // Optionally notify customer about location update
@@ -447,12 +461,12 @@ const deliveryPartnerController = {
 
       res.status(200).json({
         success: true,
-        message: "Location updated successfully",
+        message: 'Location updated successfully',
       });
     } catch (error) {
       res.status(500).json({
         success: false,
-        message: "Error updating location",
+        message: 'Error updating location',
         error: error.message,
       });
     }
