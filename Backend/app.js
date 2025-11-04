@@ -16,24 +16,33 @@ app.use(cookieParser());
 app.use(helmet()); // Secure HTTP headers
 app.use(
   cors({
-    origin: function (origin, callback) {
-      if (!origin) {
-        // No origin means same-origin (e.g., Postman, server-to-server)
-        console.log("CORS: No origin header (possibly Postman or server request) → ALLOWED");
+    origin: (origin, callback) => {
+      const rawOrigins = process.env.ALLOWED_ORIGINS || '*'; // e.g. "https://a.com,https://b.com"
+      const allowedOrigins = rawOrigins
+        .split(',')
+        .map((o) => o.trim())
+        .filter(Boolean);
+      const normalizedAllowed = allowedOrigins.map((o) => o.replace(/\/$/, ''));
+      const requestOrigin = (origin || '').replace(/\/$/, '');
+
+      // Allow non-browser requests or if wildcard
+      if (!origin || normalizedAllowed.includes('*')) {
+        logger.info(
+          `[CORS] Allowed (no origin or wildcard). Origin: ${origin || 'N/A'}`
+        );
         return callback(null, true);
       }
 
-      if (allowedOrigins.includes(origin)) {
-        console.log(`CORS: ${origin} → ✅ ALLOWED`);
+      if (normalizedAllowed.includes(requestOrigin)) {
+        logger.info(`[CORS] Allowed origin: ${origin}`);
         return callback(null, true);
-      } else {
-        console.log(`CORS: ${origin} → ❌ BLOCKED`);
-        return callback(new Error("Not allowed by CORS"));
       }
+      logger.warn(`[CORS] Blocked origin: ${origin}`);
+      return callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-    allowedHeaders: ["Content-Type", "Authorization", "position"],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'position'],
   })
 );
 // Middleware
