@@ -12,6 +12,12 @@ const { connectDB } = require('./config/database');
 const fs = require('fs');
 const app = express();
 app.use(cookieParser());
+
+app.use((req, res, next) => {
+  console.log(`[REQ] ${req.method} ${req.originalUrl} from ${req.headers['user-agent'] || 'unknown'}`);
+  next();
+});
+
 // Security Middleware
 app.use(helmet()); // Secure HTTP headers
 app.use(
