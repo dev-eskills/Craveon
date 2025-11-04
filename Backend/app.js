@@ -16,26 +16,24 @@ app.use(cookieParser());
 app.use(helmet()); // Secure HTTP headers
 app.use(
   cors({
-    origin: (origin, callback) => {
-      const rawOrigins = process.env.ALLOWED_ORIGINS || '*'; // e.g. "https://a.com,https://b.com"
-      const allowedOrigins = rawOrigins
-        .split(',')
-        .map((o) => o.trim())
-        .filter(Boolean);
-
-      // Allow non-browser requests or if wildcard
-      if (!origin || allowedOrigins.includes('*')) {
+    origin: function (origin, callback) {
+      if (!origin) {
+        // No origin means same-origin (e.g., Postman, server-to-server)
+        console.log("CORS: No origin header (possibly Postman or server request) → ALLOWED");
         return callback(null, true);
       }
 
       if (allowedOrigins.includes(origin)) {
+        console.log(`CORS: ${origin} → ✅ ALLOWED`);
         return callback(null, true);
+      } else {
+        console.log(`CORS: ${origin} → ❌ BLOCKED`);
+        return callback(new Error("Not allowed by CORS"));
       }
-      return callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'position'],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    allowedHeaders: ["Content-Type", "Authorization", "position"],
   })
 );
 // Middleware
