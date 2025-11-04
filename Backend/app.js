@@ -19,7 +19,6 @@ app.use((req, res, next) => {
 });
 
 // Security Middleware
-app.use(helmet()); // Secure HTTP headers
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -33,6 +32,7 @@ app.use(
     allowedHeaders: ['Content-Type', 'Authorization', 'position'],
   })
 );
+app.use(helmet()); // Secure HTTP headers
 // Middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
