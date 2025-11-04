@@ -28,6 +28,12 @@ const generateRefreshToken = (userId) => {
 const registerUser = expressAsyncHandler(async (req, res) => {
   const { name, email, password, number, otpToken } = req.body;
 
+  const userExist = await User.findOne({ number });
+
+  if (userExist) {
+    res.status(409);
+    throw new Error("User already exists With this number");
+  }
   // Validate required fields
   if (!name || !email || !password || !number || !otpToken) {
     res.status(400);
@@ -89,6 +95,7 @@ const registerUser = expressAsyncHandler(async (req, res) => {
       accessToken,
     });
   } catch (error) {
+    console.log(error , "error from register user")
     // Handle MongoDB duplicate key error specifically
     if (error.code === 11000) {
       res.status(409);

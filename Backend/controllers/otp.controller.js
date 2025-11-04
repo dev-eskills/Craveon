@@ -41,11 +41,11 @@ const sendOtp = expressAsyncHandler(async (req, res) => {
     res.status(400);
     throw new Error("Enter Valid Phone Number");
   }
-  const userExist = await User.findOne({ number: phone});
-  if (userExist) {
-    res.status(409);
-    throw new Error("User already exists With this number");
-  }
+  // const userExist = await User.findOne({ number: phone });
+  // if (userExist) {
+  //   res.status(409);
+  //   throw new Error("User already exists With this number");
+  // }
 
   const newOTP = generateOTP();
   const entry = await OTP.findOne({ phone });

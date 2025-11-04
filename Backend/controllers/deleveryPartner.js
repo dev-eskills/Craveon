@@ -255,7 +255,7 @@ const deliveryPartnerController = {
 
       // Mark order as out for delivery
       try {
-        // await order.markOutForDelivery(deliveryPartnerId);
+        await order.markOutForDelivery(deliveryPartnerId);
         order.status = 'OUT_FOR_DELIVERY';
         await order.save();
       } catch (error) {
@@ -263,53 +263,6 @@ const deliveryPartnerController = {
           success: false,
           message: error.message,
         });
-      }
-
-      // Send delivery OTP via Fast2SMS as plain text message
-      try {
-        const customer = await User.findById(order.user, 'number');
-        if (customer && customer.number) {
-          const route = process.env.SMS_ROUTE || 'dlt';
-          const senderId = process.env.SMS_SENDER_ID || 'CRAVEO';
-
-          // If Quick (custom text) route is allowed, send customizable message
-          if (route === 'q' && process.env.SMS_DELIVERY_OTP_TEXT) {
-            const templateText = process.env.SMS_DELIVERY_OTP_TEXT;
-            const customMessage = templateText
-              .replace(/\{ORDER\}/g, String(order.orderNumber || ''))
-              .replace(/\{OTP\}/g, String(order.deliveryOTP || ''));
-
-            await axios.get('https://www.fast2sms.com/dev/bulkV2', {
-              params: {
-                authorization: process.env.SMS_KEY,
-                language: 'english',
-                route: 'q',
-                message: customMessage,
-                numbers: customer.number,
-              },
-            });
-          } else {
-            // Fallback to DLT template with placeholders for ORDER and OTP
-            await axios.get('https://www.fast2sms.com/dev/bulkV2', {
-              params: {
-                authorization: process.env.SMS_KEY,
-                route: 'dlt',
-                sender_id: senderId,
-                message: process.env.SMS_TEMPLATE_DELIVERY_OTP || '194835',
-                // Expect DLT template variables in order: {#var#} -> ORDER, {#var#} -> OTP
-                variables_values: `${order.orderNumber}|${order.deliveryOTP}|`,
-                flash: '0',
-                numbers: customer.number,
-              },
-            });
-          }
-        }
-      } catch (err) {
-        console.error(
-          'Failed to send delivery OTP SMS:',
-          err?.response?.data || err?.message || err
-        );
-        // Do not fail the main flow if SMS sending fails
       }
 
       res.status(200).json({
