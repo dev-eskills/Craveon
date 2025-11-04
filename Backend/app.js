@@ -17,28 +17,10 @@ app.use(helmet()); // Secure HTTP headers
 app.use(
   cors({
     origin: (origin, callback) => {
-      const rawOrigins = process.env.ALLOWED_ORIGINS || '*'; // e.g. "https://a.com,https://b.com"
-      const allowedOrigins = rawOrigins
-        .split(',')
-        .map((o) => o.trim())
-        .filter(Boolean);
-      const normalizedAllowed = allowedOrigins.map((o) => o.replace(/\/$/, ''));
-      const requestOrigin = (origin || '').replace(/\/$/, '');
-
-      // Allow non-browser requests or if wildcard
-      if (!origin || normalizedAllowed.includes('*')) {
-        logger.info(
-          `[CORS] Allowed (no origin or wildcard). Origin: ${origin || 'N/A'}`
-        );
-        return callback(null, true);
-      }
-
-      if (normalizedAllowed.includes(requestOrigin)) {
-        logger.info(`[CORS] Allowed origin: ${origin}`);
-        return callback(null, true);
-      }
-      logger.warn(`[CORS] Blocked origin: ${origin}`);
-      return callback(new Error('Not allowed by CORS'));
+      logger.info(
+        `[CORS] Allowing origin: ${origin || 'N/A'} (ALLOW ALL MODE)`
+      );
+      return callback(null, true);
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
