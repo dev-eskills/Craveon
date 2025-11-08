@@ -22,9 +22,6 @@ app.use((req, res, next) => {
 app.use(
   cors({
     origin: (origin, callback) => {
-      logger.info(
-        `[CORS] Allowing origin: ${origin || 'N/A'} (ALLOW ALL MODE)`
-      );
       return callback(null, true);
     },
     credentials: true,

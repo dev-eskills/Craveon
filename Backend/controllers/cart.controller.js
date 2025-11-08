@@ -26,13 +26,16 @@ exports.addToCart = asyncHandler(async (req, res) => {
       throw new Error("Product not found");
     }
 
-    const restaurant = await Restaurant.findOne({ owner: product.restaurant })
-      .select("commissionRate packagingCharge owner businessHours")
+    // ⚠️ product.restaurant contains OWNER ID, not restaurant ID
+    const restaurantOwnerId = product.restaurant;
+
+    // Fetch the actual restaurant using owner ID
+    const restaurant = await Restaurant.findOne({ owner: restaurantOwnerId })
+      .select("_id commissionRate packagingCharge owner businessHours")
       .populate("owner", "name email");
 
-    product.restaurant = restaurant;
 
-    if (!product.isAvailable || !product.restaurant) {
+    if (!product.isAvailable || !restaurant) {
       return handleError(res, 400, "Product is not available for ordering");
     }
 
@@ -42,42 +45,39 @@ exports.addToCart = asyncHandler(async (req, res) => {
       return handleError(res, 400, "Restaurant is currently closed");
     }
 
-    // Find existing cart for user
+    // ✅ USE THE ACTUAL RESTAURANT ID, NOT THE OWNER ID
+    const actualRestaurantId = restaurant._id;
+
     let cart = await Cart.findOne({ user: userId });
 
-    // Ensure that users cannot mix products from different restaurants
-    if (cart && cart.items.length > 0) {
-      if (
-        cart.restaurant &&
-        String(cart.restaurant) !== String(product.restaurant._id)
-      ) {
+    // Check restaurant mismatch
+    if (cart && cart.restaurant) {
+      if (cart.items.length === 0) {
+        cart.restaurant = actualRestaurantId;
+      } 
+      else if (String(cart.restaurant) !== String(actualRestaurantId)) {
         return createResponse(
           res,
           400,
-          "Items from different restaurants cannot be added to the same cart"
+          "Items from different restaurants cannot be added to the same cart. Please clear your cart first."
         );
       }
     }
 
-    // If no cart exists, create one
     if (!cart) {
       cart = new Cart({
         user: userId,
-        restaurant: product.restaurant._id, // Store restaurant ID
+        restaurant: actualRestaurantId, // ✅ Use actual restaurant ID
         items: [],
       });
-    } else {
-      // Ensure restaurant is set if it was null or undefined
-      if (!cart.restaurant) {
-        cart.restaurant = product.restaurant._id;
-      }
+    } 
+    else if (!cart.restaurant) {
+      cart.restaurant = actualRestaurantId; // ✅ Use actual restaurant ID
     }
 
-    // Validate attributes and addons
     const validatedAttributes = validateAttributes(product, selectedAttributes);
     const validatedAddons = validateAddons(product, selectedAddons);
 
-    // Add or update item in cart
     cart.addOrUpdateItem(
       product,
       quantity,
@@ -85,10 +85,8 @@ exports.addToCart = asyncHandler(async (req, res) => {
       validatedAddons
     );
 
-    // Save the cart
     await cart.save();
 
-    // Populate cart with product and restaurant details before sending response
     await cart.populate([
       {
         path: "items.product",
@@ -96,7 +94,7 @@ exports.addToCart = asyncHandler(async (req, res) => {
       },
       {
         path: "restaurant",
-        select: "name address  ",
+        select: "name address",
       },
     ]);
 

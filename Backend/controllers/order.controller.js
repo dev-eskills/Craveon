@@ -572,6 +572,9 @@ exports.assignDeliveryPartner = async (req, res) => {
       });
     }
 
+    console.log("Order Status", order.status)
+    console.log(["ACCEPTED", "PREPARING", "READY_FOR_PICKUP"].includes(order.status))
+
     // Check if order status is appropriate for delivery assignment
     if (["ACCEPTED", "PREPARING", "READY_FOR_PICKUP"].includes(order.status)) {
       return res.status(400).json({
@@ -643,10 +646,11 @@ exports.updateOrderTrackStatus = async (req, res) => {
           .json({ message: "riderId is required to assign delivery partner" });
       }
 
-      if (order.status !== "READY_FOR_PICKUP") {
+      if (order.status !== "READY_FOR_PICKUP" && order.status !== "PREPARING") {
+        console.log(order.status)
         return res.status(400).json({
           message:
-            "Delivery partner can only be assigned when order is READY_FOR_PICKUP",
+            "Delivery partner can only be assigned when order is above PREPARING",
         });
       }
 

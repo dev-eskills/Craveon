@@ -199,7 +199,7 @@ const AdminOrders = () => {
                       year: 'numeric',
                     })}
                   </td>
-                  {order?.status === 'READY_FOR_PICKUP' ? (
+                  {order?.status === 'READY_FOR_PICKUP'||order?.status ==="PREPARING" ? (
                     <td>
                       <Link
                         to={'/admin/riders'}
