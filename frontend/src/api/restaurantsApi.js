@@ -65,7 +65,6 @@ const updateRestaurantImage = async ({ formData, id }) => {
 };
 
 const getBuissnessHours = async (id) => {
-  console.log(id, 'api id ');
   const response = await api.get(`${BASE_URL}/${id}/business-hours`);
   return response.data;
 };
