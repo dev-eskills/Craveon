@@ -1,12 +1,11 @@
-const Order = require("../models/Order");
-const User = require("../models/user");
-const Cart = require("../models/cart"); // Assuming you have a Cart model
-const Restaurant = require("../models/Restaurants"); // Assuming you have a Restaurant model
-const razorpayService = require("../services/payment.service");
-const mongoose = require("mongoose");
+const Order = require('../models/Order');
+const User = require('../models/user');
+const Cart = require('../models/cart'); // Assuming you have a Cart model
+const Restaurant = require('../models/Restaurants'); // Assuming you have a Restaurant model
+const razorpayService = require('../services/payment.service');
+const mongoose = require('mongoose');
 // const { sendOrderNotification } = require("../services/notification.service"); // Assuming you have a notification service
-const logger = require("../config/logger");
-
+const logger = require('../config/logger');
 
 exports.createOrder = async (req, res) => {
   const session = await mongoose.startSession();
@@ -17,17 +16,17 @@ exports.createOrder = async (req, res) => {
     const userId = req.user.id;
 
     // Validate payment mode - only COD or ONLINE allowed
-    if (paymentMode !== "COD" && paymentMode !== "ONLINE") {
+    if (paymentMode !== 'COD' && paymentMode !== 'ONLINE') {
       await session.abortTransaction();
       session.endSession();
       return res
         .status(400)
-        .json({ message: "Payment mode must be either COD or ONLINE" });
+        .json({ message: 'Payment mode must be either COD or ONLINE' });
     }
 
     // Get active cart for user
     const cart = await Cart.findOne({ user: userId })
-      .populate("restaurant")
+      .populate('restaurant')
       .session(session);
 
     if (!cart || cart.items.length === 0) {
@@ -35,16 +34,15 @@ exports.createOrder = async (req, res) => {
       session.endSession();
       return res
         .status(400)
-        .json({ message: "Something went wrong try refresh" });
+        .json({ message: 'Something went wrong try refresh' });
     }
-
 
     // Get user to access saved addresses
     const user = await User.findById(userId).session(session);
     if (!user) {
       await session.abortTransaction();
       session.endSession();
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: 'User not found' });
     }
 
     // Find the selected delivery address
@@ -54,7 +52,7 @@ exports.createOrder = async (req, res) => {
     if (!deliveryAddress) {
       await session.abortTransaction();
       session.endSession();
-      return res.status(400).json({ message: "Delivery address not found" });
+      return res.status(400).json({ message: 'Delivery address not found' });
     }
 
     // Make sure each cart item's selectedAttributes has selectedOption as a string before passing to Order model
@@ -67,7 +65,7 @@ exports.createOrder = async (req, res) => {
           attributeName: attr.attributeName,
           selectedOption: Array.isArray(attr.selectedOption)
             ? JSON.stringify(attr.selectedOption)
-            : String(attr.selectedOption || ""),
+            : String(attr.selectedOption || ''),
           additionalPrice: Number(attr.additionalPrice || 0),
         })),
       };
@@ -83,24 +81,24 @@ exports.createOrder = async (req, res) => {
     const order = await Order.createFromCart(
       preparedCart,
       paymentMode,
-      paymentMode === "ONLINE" ? "RAZORPAY" : "NONE",
+      paymentMode === 'ONLINE' ? 'RAZORPAY' : 'NONE',
       deliveryAddress
     );
     await order.save({ session });
 
     // Handle COD payment
-    if (paymentMode === "COD") {
-      order.status = "PENDING";
+    if (paymentMode === 'COD') {
+      order.status = 'PENDING';
       await order.updateStatus(
-        "PENDING",
-        "Order confirmed for COD payment",
+        'PENDING',
+        'Order confirmed for COD payment',
         req.user.id
       );
       await order.save({ session });
 
       // Mark cart as completed
       cart.items = []; // clear cart after order//
-      cart.status = "COMPLETED";
+      cart.status = 'COMPLETED';
       await cart.save({ session });
 
       await session.commitTransaction();
@@ -160,10 +158,10 @@ exports.createOrder = async (req, res) => {
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
-    logger.error("Order creation error:", error);
+    logger.error('Order creation error:', error);
     return res
       .status(500)
-      .json({ message: "Failed to create order", error: error.message });
+      .json({ message: 'Failed to create order', error: error.message });
   }
 };
 
@@ -175,7 +173,7 @@ exports.verifyPayment = async (req, res) => {
     const userId = req.user.id;
     const { orderId, paymentId, signature, razorpayOrderId } = req.body;
 
-    const cart = await Cart.findOne({ user: userId }).populate("restaurant");
+    const cart = await Cart.findOne({ user: userId }).populate('restaurant');
 
     // Verify payment signature
     const isValidSignature = razorpayService.verifyPaymentSignature({
@@ -185,15 +183,15 @@ exports.verifyPayment = async (req, res) => {
     });
 
     if (!isValidSignature) {
-      return res.status(400).json({ message: "Invalid payment signature" });
+      return res.status(400).json({ message: 'Invalid payment signature' });
     }
 
     // Find order by Razorpay order ID
     const order = await Order.findOne({
-      "paymentDetails.orderId": razorpayOrderId,
+      'paymentDetails.orderId': razorpayOrderId,
     });
     if (!order) {
-      return res.status(404).json({ message: "Order not found" });
+      return res.status(404).json({ message: 'Order not found' });
     }
 
     // Get payment details from Razorpay
@@ -203,17 +201,17 @@ exports.verifyPayment = async (req, res) => {
     order.paymentDetails.paymentId = paymentId;
     order.paymentDetails.signature = signature;
     order.paymentDetails.paymentDate = new Date();
-    order.paymentDetails.paymentMethod = paymentDetails.method || "";
+    order.paymentDetails.paymentMethod = paymentDetails.method || '';
     order.paymentStatus =
-      paymentDetails.status === "captured" ? "PAID" : "PENDING";
+      paymentDetails.status === 'captured' ? 'PAID' : 'PENDING';
 
     await order.save();
 
     // Send notification to restaurant
     // await sendOrderNotification(order, "restaurant");
-    cart.status = "COMPLETED";
+    cart.status = 'COMPLETED';
     cart.items = []; // clear cart after order//
-    cart.status = "COMPLETED";
+    cart.status = 'COMPLETED';
     await cart.save();
 
     return res.status(200).json({
@@ -226,10 +224,10 @@ exports.verifyPayment = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Payment verification error:", error);
+    console.error('Payment verification error:', error);
     return res
       .status(500)
-      .json({ message: "Failed to verify payment", error: error.message });
+      .json({ message: 'Failed to verify payment', error: error.message });
   }
 };
 
@@ -243,38 +241,38 @@ exports.getOrderById = async (req, res) => {
     const userRole = req.user.role;
 
     const order = await Order.findById(orderId)
-      .populate("restaurant", "name address location contactInfo")
-      .populate("user", "name email number")
-      .populate("deliveryPartner", "name number")
-      .populate("items.product");
+      .populate('restaurant', 'name address location contactInfo')
+      .populate('user', 'name email number')
+      .populate('deliveryPartner', 'name number')
+      .populate('items.product');
 
     if (!order) {
-      return res.status(404).json({ message: "Order not found" });
+      return res.status(404).json({ message: 'Order not found' });
     }
 
     // Check permissions - user can only see their own orders
     // Admin, restaurant owner, or delivery partner can see orders they're involved with
     if (
-      userRole === "USER" &&
+      userRole === 'USER' &&
       order.user._id.toString() !== userId &&
-      userRole !== "ADMIN" &&
-      userRole === "RESTAURANT" &&
+      userRole !== 'ADMIN' &&
+      userRole === 'RESTAURANT' &&
       order.restaurant._id.toString() !== req.user.restaurantId &&
-      userRole === "DELIVERY_PARTNER" &&
+      userRole === 'DELIVERY_PARTNER' &&
       (!order.deliveryPartner ||
         order.deliveryPartner._id.toString() !== userId)
     ) {
       return res
         .status(403)
-        .json({ message: "Not authorized to view this order" });
+        .json({ message: 'Not authorized to view this order' });
     }
 
     return res.status(200).json({ order });
   } catch (error) {
-    console.error("Get order error:", error);
+    console.error('Get order error:', error);
     return res
       .status(500)
-      .json({ message: "Failed to get order", error: error.message });
+      .json({ message: 'Failed to get order', error: error.message });
   }
 };
 
@@ -316,16 +314,16 @@ exports.getUserOrders = async (req, res) => {
   try {
     const userId = req.params.id;
     const orders = await Order.find({ user: userId })
-      .sort({ createdAt: -1 }) 
-      .populate("restaurant", "name address")
-      .populate("deliveryPartner", "name phone")
-      .populate("items.product");
+      .sort({ createdAt: -1 })
+      .populate('restaurant', 'name address')
+      .populate('deliveryPartner', 'name number')
+      .populate('items.product');
 
     res.status(200).json(orders);
   } catch (error) {
-    console.error("Get user orders error:", error.message);
+    console.error('Get user orders error:', error.message);
     res.status(500).json({
-      message: "Failed to get orders",
+      message: 'Failed to get orders',
       error: error.message,
     });
   }
@@ -336,13 +334,13 @@ exports.getUserOrders = async (req, res) => {
  */
 exports.getRestaurantOrders = async (req, res) => {
   try {
-    const { status, sort = "-createdAt" } = req.query;
+    const { status, sort = '-createdAt' } = req.query;
 
     // Authorization check
-    if (req.user.role === "user") {
+    if (req.user.role === 'user') {
       return res
         .status(403)
-        .json({ message: "Not authorized to view restaurant orders" });
+        .json({ message: 'Not authorized to view restaurant orders' });
     }
 
     // Find restaurant that belongs to the logged-in user
@@ -351,7 +349,7 @@ exports.getRestaurantOrders = async (req, res) => {
     if (!restaurant) {
       return res
         .status(404)
-        .json({ message: "Restaurant not found for this user" });
+        .json({ message: 'Restaurant not found for this user' });
     }
 
     // Build query object using restaurant._id
@@ -362,9 +360,9 @@ exports.getRestaurantOrders = async (req, res) => {
 
     // Find orders for this restaurant
     const orders = await Order.find(query)
-      .populate("user", "name number")
-      .populate("restaurant", "name")
-      .select("orderNumber user restaurant items finalTotal status createdAt")
+      .populate('user', 'name number')
+      .populate('restaurant', 'name')
+      .select('orderNumber user restaurant items finalTotal status createdAt')
       .sort(sort);
 
     return res.status(200).json({
@@ -373,9 +371,9 @@ exports.getRestaurantOrders = async (req, res) => {
       orders: orders,
     });
   } catch (error) {
-    console.error("Get restaurant orders error:", error);
+    console.error('Get restaurant orders error:', error);
     return res.status(500).json({
-      message: "Failed to get restaurant orders",
+      message: 'Failed to get restaurant orders',
       error: error.message,
     });
   }
@@ -392,11 +390,11 @@ exports.updateOrderStatus = async (req, res) => {
     const userRole = req.user.role;
 
     const order = await Order.findById(id)
-      .populate("restaurant", "name")
-      .populate("user", "name email phone");
+      .populate('restaurant', 'name')
+      .populate('user', 'name email phone');
 
     if (!order) {
-      return res.status(404).json({ message: "Order not found" });
+      return res.status(404).json({ message: 'Order not found' });
     }
 
     // Check permissions based on status and user role
@@ -409,18 +407,18 @@ exports.updateOrderStatus = async (req, res) => {
     if (!canUpdateStatus) {
       return res
         .status(403)
-        .json({ message: "Not authorized to update this order status" });
+        .json({ message: 'Not authorized to update this order status' });
     }
 
     // Handle special cases
-    if (status === "CANCELLED") {
+    if (status === 'CANCELLED') {
       // Additional cancellation logic
       order.cancellationReason =
-        req.body.cancellationReason || "No reason provided";
-      order.cancellationNotes = req.body.cancellationNotes || "";
+        req.body.cancellationReason || 'No reason provided';
+      order.cancellationNotes = req.body.cancellationNotes || '';
 
       // If payment was already made, initiate refund
-      if (order.paymentStatus === "PAID" && order.paymentMode === "ONLINE") {
+      if (order.paymentStatus === 'PAID' && order.paymentMode === 'ONLINE') {
         try {
           const refundAmount = order.calculateRefundAmount(
             req.body.refundAmount
@@ -441,13 +439,14 @@ exports.updateOrderStatus = async (req, res) => {
             order.paymentDetails.refundAmount = refundAmount;
             order.paymentDetails.refundDate = new Date();
             order.paymentDetails.refundStatus = refund.status;
-            order.paymentStatus = "REFUNDED";
+            order.paymentStatus = 'REFUNDED';
           }
         } catch (refundError) {
-          console.error("Refund processing error:", refundError);
+          console.error('Refund processing error:', refundError);
           // Still update the status but note the refund error
-          order.adminNotes = `${order.adminNotes || ""
-            }\nRefund processing failed: ${refundError.message}`;
+          order.adminNotes = `${
+            order.adminNotes || ''
+          }\nRefund processing failed: ${refundError.message}`;
         }
       }
     }
@@ -456,7 +455,7 @@ exports.updateOrderStatus = async (req, res) => {
     await order.updateStatus(status, notes, userId);
 
     // Send notifications based on status update
-    await sendOrderNotification(order, "status_update");
+    await sendOrderNotification(order, 'status_update');
 
     return res.status(200).json({
       success: true,
@@ -468,10 +467,10 @@ exports.updateOrderStatus = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Update order status error:", error);
+    console.error('Update order status error:', error);
     return res
       .status(500)
-      .json({ message: "Failed to update order status", error: error.message });
+      .json({ message: 'Failed to update order status', error: error.message });
   }
 };
 
@@ -487,22 +486,22 @@ function checkStatusUpdatePermission(
   const currentStatus = order.status;
 
   // Admin can update any status
-  if (userRole === "ADMIN") {
+  if (userRole === 'ADMIN') {
     return true;
   }
 
   // Restaurant can only update their own orders
-  if (userRole === "RESTAURANT") {
+  if (userRole === 'RESTAURANT') {
     if (order.restaurant._id.toString() !== userRestaurantId) {
       return false;
     }
 
     // Restaurant allowed status updates
     const allowedUpdates = {
-      PENDING: ["ACCEPTED", "REJECTED"],
-      ACCEPTED: ["PREPARING"],
-      PREPARING: ["READY_FOR_PICKUP"],
-      READY_FOR_PICKUP: ["OUT_FOR_DELIVERY"],
+      PENDING: ['ACCEPTED', 'REJECTED'],
+      ACCEPTED: ['PREPARING'],
+      PREPARING: ['READY_FOR_PICKUP'],
+      READY_FOR_PICKUP: ['OUT_FOR_DELIVERY'],
     };
 
     return (
@@ -512,10 +511,10 @@ function checkStatusUpdatePermission(
   }
 
   // Delivery partner can update delivery status
-  if (userRole === "DELIVERY_PARTNER") {
+  if (userRole === 'DELIVERY_PARTNER') {
     const allowedUpdates = {
-      READY_FOR_PICKUP: ["OUT_FOR_DELIVERY"],
-      OUT_FOR_DELIVERY: ["DELIVERED"],
+      READY_FOR_PICKUP: ['OUT_FOR_DELIVERY'],
+      OUT_FOR_DELIVERY: ['DELIVERED'],
     };
 
     return (
@@ -527,15 +526,15 @@ function checkStatusUpdatePermission(
   }
 
   // User can only cancel their own orders
-  if (userRole === "USER") {
+  if (userRole === 'USER') {
     if (order.user._id.toString() !== req.user.id) {
       return false;
     }
 
     // Users can only cancel orders that are not yet being prepared
     return (
-      newStatus === "CANCELLED" &&
-      ["PENDING", "ACCEPTED"].includes(currentStatus)
+      newStatus === 'CANCELLED' &&
+      ['PENDING', 'ACCEPTED'].includes(currentStatus)
     );
   }
 
@@ -550,42 +549,44 @@ exports.assignDeliveryPartner = async (req, res) => {
     const { orderId, riderId: deliveryPartnerId, status } = req.body;
 
     // Only admin or restaurant can assign delivery partner
-    if (req.user.role !== "admin" && req.user.role !== "restaurant") {
+    if (req.user.role !== 'admin' && req.user.role !== 'restaurant') {
       return res
         .status(403)
-        .json({ message: "Not authorized to assign delivery partner" });
+        .json({ message: 'Not authorized to assign delivery partner' });
     }
 
     const order = await Order.findById(orderId);
     if (!order) {
-      return res.status(404).json({ message: "Order not found" });
+      return res.status(404).json({ message: 'Order not found' });
     }
 
     // Restaurant can only assign for their own orders
     if (
-      req.user.role === "restaurant" &&
+      req.user.role === 'restaurant' &&
       order.restaurant.toString() !== req.user.restaurantId
     ) {
       return res.status(403).json({
         message:
-          "Can only assign delivery partners to your own restaurant orders",
+          'Can only assign delivery partners to your own restaurant orders',
       });
     }
 
-    console.log("Order Status", order.status)
-    console.log(["ACCEPTED", "PREPARING", "READY_FOR_PICKUP"].includes(order.status))
+    console.log('Order Status', order.status);
+    console.log(
+      ['ACCEPTED', 'PREPARING', 'READY_FOR_PICKUP'].includes(order.status)
+    );
 
     // Check if order status is appropriate for delivery assignment
-    if (["ACCEPTED", "PREPARING", "READY_FOR_PICKUP"].includes(order.status)) {
+    if (['ACCEPTED', 'PREPARING', 'READY_FOR_PICKUP'].includes(order.status)) {
       return res.status(400).json({
-        message: "Cannot assign delivery partner at current order status",
+        message: 'Cannot assign delivery partner at current order status',
       });
     }
 
     // Verify delivery partner exists
     const deliveryPartner = await User.findById(deliveryPartnerId);
     if (!deliveryPartner) {
-      return res.status(404).json({ message: "Delivery partner not found" });
+      return res.status(404).json({ message: 'Delivery partner not found' });
     }
 
     // Update order with delivery partner
@@ -597,16 +598,16 @@ exports.assignDeliveryPartner = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Delivery partner assigned successfully",
+      message: 'Delivery partner assigned successfully',
       deliveryPartner: {
         _id: deliveryPartner._id,
         name: deliveryPartner.name,
       },
     });
   } catch (error) {
-    console.error("Assign delivery partner error:", error);
+    console.error('Assign delivery partner error:', error);
     return res.status(500).json({
-      message: "Failed to assign delivery partner",
+      message: 'Failed to assign delivery partner',
       error: error.message,
     });
   }
@@ -619,15 +620,15 @@ exports.updateOrderTrackStatus = async (req, res) => {
 
     const order = await Order.findById(orderId);
     if (!order) {
-      return res.status(404).json({ message: "Order not found" });
+      return res.status(404).json({ message: 'Order not found' });
     }
 
     // Allowed status transitions by role
     const validTransitions = {
-      admin: ["ASSIGNED"],
-      user: ["CANCELLED"],
-      restaurant: ["ACCEPTED", "REJECTED", "PREPARING", "READY_FOR_PICKUP"],
-      delivery_partner: ["OUT_FOR_DELIVERY", "DELIVERED"],
+      admin: ['ASSIGNED'],
+      user: ['CANCELLED'],
+      restaurant: ['ACCEPTED', 'REJECTED', 'PREPARING', 'READY_FOR_PICKUP'],
+      delivery_partner: ['OUT_FOR_DELIVERY', 'DELIVERED'],
     };
 
     // Check if role is allowed to set this status
@@ -639,34 +640,34 @@ exports.updateOrderTrackStatus = async (req, res) => {
     }
 
     // Specific logic for ASSIGNING delivery partner (only ADMIN can do it)
-    if (status === "ASSIGNED") {
+    if (status === 'ASSIGNED') {
       if (!riderId) {
         return res
           .status(400)
-          .json({ message: "riderId is required to assign delivery partner" });
+          .json({ message: 'riderId is required to assign delivery partner' });
       }
 
-      if (order.status !== "READY_FOR_PICKUP" && order.status !== "PREPARING") {
-        console.log(order.status)
+      if (order.status !== 'READY_FOR_PICKUP' && order.status !== 'PREPARING') {
+        console.log(order.status);
         return res.status(400).json({
           message:
-            "Delivery partner can only be assigned when order is above PREPARING",
+            'Delivery partner can only be assigned when order is above PREPARING',
         });
       }
 
       const rider = await User.findById(riderId);
       if (!rider) {
-        return res.status(404).json({ message: "Delivery partner not found" });
+        return res.status(404).json({ message: 'Delivery partner not found' });
       }
 
       order.deliveryPartner = riderId;
     }
 
-    if (order.status === "DELIVERED") {
-      if (status === "CANCELLED") {
+    if (order.status === 'DELIVERED') {
+      if (status === 'CANCELLED') {
         return res
           .status(402)
-          .json({ message: "You are not able to cancel order" });
+          .json({ message: 'You are not able to cancel order' });
       }
     }
     // Update the order status
@@ -676,7 +677,7 @@ exports.updateOrderTrackStatus = async (req, res) => {
     return res.status(200).json({
       success: true,
 
-      message: "Order status updated successfully",
+      message: 'Order status updated successfully',
       order: {
         _id: order._id,
         status: order.status,
@@ -684,9 +685,9 @@ exports.updateOrderTrackStatus = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Update order status error:", error);
+    console.error('Update order status error:', error);
     return res.status(500).json({
-      message: "Failed to update order",
+      message: 'Failed to update order',
       error: error.message,
     });
   }
@@ -704,51 +705,51 @@ exports.addCustomerRating = async (req, res) => {
     if (!rating || rating < 1 || rating > 5) {
       return res
         .status(400)
-        .json({ message: "Rating must be between 1 and 5" });
+        .json({ message: 'Rating must be between 1 and 5' });
     }
 
     const order = await Order.findById(orderId);
     if (!order) {
-      return res.status(404).json({ message: "Order not found" });
+      return res.status(404).json({ message: 'Order not found' });
     }
 
     // Verify the order belongs to the user
     if (order.user.toString() !== userId) {
       return res
         .status(403)
-        .json({ message: "Not authorized to rate this order" });
+        .json({ message: 'Not authorized to rate this order' });
     }
 
     // Check if order is delivered
-    if (order.status !== "DELIVERED") {
+    if (order.status !== 'DELIVERED') {
       return res
         .status(400)
-        .json({ message: "Can only rate delivered orders" });
+        .json({ message: 'Can only rate delivered orders' });
     }
 
     // Add or update rating
     order.customerRating = {
       rating,
-      review: review || "",
+      review: review || '',
       timestamp: new Date(),
     };
 
     await order.save();
 
     // Update restaurant rating
-    const Restaurant = mongoose.model("Restaurant");
+    const Restaurant = mongoose.model('Restaurant');
     await Restaurant.updateRating(order.restaurant);
 
     return res.status(200).json({
       success: true,
-      message: "Rating added successfully",
+      message: 'Rating added successfully',
       customerRating: order.customerRating,
     });
   } catch (error) {
-    console.error("Add customer rating error:", error);
+    console.error('Add customer rating error:', error);
     return res
       .status(500)
-      .json({ message: "Failed to add rating", error: error.message });
+      .json({ message: 'Failed to add rating', error: error.message });
   }
 };
 
@@ -758,10 +759,10 @@ exports.addCustomerRating = async (req, res) => {
 exports.getAllOrders = async (req, res) => {
   try {
     // Only admin can access all orders
-    if (req.user.role !== "admin") {
+    if (req.user.role !== 'admin') {
       return res
         .status(403)
-        .json({ message: "Not authorized to access all orders" });
+        .json({ message: 'Not authorized to access all orders' });
     }
 
     const {
@@ -776,7 +777,7 @@ exports.getAllOrders = async (req, res) => {
       page = 1,
       orderNumber,
       limit = 10,
-      sort = "-createdAt",
+      sort = '-createdAt',
     } = req.query;
 
     // Build query
@@ -789,7 +790,7 @@ exports.getAllOrders = async (req, res) => {
     if (paymentStatus) query.paymentStatus = paymentStatus.toUpperCase();
     if (paymentMode) query.paymentMode = paymentMode.toUpperCase();
     if (orderNumber) {
-      query.orderNumber = { $regex: orderNumber, $options: "i" };
+      query.orderNumber = { $regex: orderNumber, $options: 'i' };
     }
 
     // Date range filter
@@ -804,18 +805,18 @@ exports.getAllOrders = async (req, res) => {
       limit: parseInt(limit),
       sort: sort,
       populate: [
-        { path: "restaurant", select: "name address" },
-        { path: "user", select: "name email phone" },
-        { path: "deliveryPartner", select: "name phone" },
+        { path: 'restaurant', select: 'name address' },
+        { path: 'user', select: 'name email phone' },
+        { path: 'deliveryPartner', select: 'name phone' },
       ],
-      select: "orderNumber user items finalTotal status createdAt subtotal",
+      select: 'orderNumber user items finalTotal status createdAt subtotal',
     };
 
     const orders = await Order.paginate(query, options);
-    console.log(orders.docs[0].items, "Orders from get all order");
+    console.log(orders.docs[0].items, 'Orders from get all order');
     orders.docs = orders.docs.map((order) => {
       const itemTotalSum = order.subtotal;
-      console.log(itemTotalSum, "restaurant margin");
+      console.log(itemTotalSum, 'restaurant margin');
       return {
         ...order.toObject(), // convert Mongoose document to plain object
         restaurantTotal: itemTotalSum,
@@ -824,10 +825,10 @@ exports.getAllOrders = async (req, res) => {
 
     return res.status(200).json(orders);
   } catch (error) {
-    console.error("Get all orders error:", error);
+    console.error('Get all orders error:', error);
     return res
       .status(500)
-      .json({ message: "Failed to get orders", error: error.message });
+      .json({ message: 'Failed to get orders', error: error.message });
   }
 };
 
@@ -849,9 +850,9 @@ exports.getOrderMetrics = async (req, res) => {
 
     // Build restaurant filter
     const restaurantQuery = {};
-    if (userRole === "RESTAURANT") {
+    if (userRole === 'RESTAURANT') {
       restaurantQuery.restaurant = req.user.restaurantId;
-    } else if (restaurantId && userRole === "ADMIN") {
+    } else if (restaurantId && userRole === 'ADMIN') {
       restaurantQuery.restaurant = restaurantId;
     }
 
@@ -861,7 +862,7 @@ exports.getOrderMetrics = async (req, res) => {
     // Get order counts by status
     const statusCounts = await Order.aggregate([
       { $match: query },
-      { $group: { _id: "$status", count: { $sum: 1 } } },
+      { $group: { _id: '$status', count: { $sum: 1 } } },
     ]);
 
     // Get payment stats
@@ -869,9 +870,9 @@ exports.getOrderMetrics = async (req, res) => {
       { $match: query },
       {
         $group: {
-          _id: "$paymentMode",
+          _id: '$paymentMode',
           count: { $sum: 1 },
-          total: { $sum: "$finalTotal" },
+          total: { $sum: '$finalTotal' },
         },
       },
     ]);
@@ -881,9 +882,9 @@ exports.getOrderMetrics = async (req, res) => {
       { $match: query },
       {
         $group: {
-          _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
           count: { $sum: 1 },
-          revenue: { $sum: "$finalTotal" },
+          revenue: { $sum: '$finalTotal' },
         },
       },
       { $sort: { _id: 1 } },
@@ -913,10 +914,10 @@ exports.getOrderMetrics = async (req, res) => {
       dailyOrders,
     });
   } catch (error) {
-    console.error("Get order metrics error:", error);
+    console.error('Get order metrics error:', error);
     return res
       .status(500)
-      .json({ message: "Failed to get order metrics", error: error.message });
+      .json({ message: 'Failed to get order metrics', error: error.message });
   }
 };
 
@@ -931,22 +932,22 @@ exports.updateOrderNotes = async (req, res) => {
 
     const order = await Order.findById(id);
     if (!order) {
-      return res.status(404).json({ message: "Order not found" });
+      return res.status(404).json({ message: 'Order not found' });
     }
 
     // Check permission
-    if (userRole === "RESTAURANT") {
+    if (userRole === 'RESTAURANT') {
       if (order.restaurant.toString() !== req.user.restaurantId) {
         return res
           .status(403)
-          .json({ message: "Not authorized to update this order" });
+          .json({ message: 'Not authorized to update this order' });
       }
 
       // Restaurant can only update restaurant notes
       if (restaurantNotes !== undefined) {
         order.restaurantNotes = restaurantNotes;
       }
-    } else if (userRole === "ADMIN") {
+    } else if (userRole === 'ADMIN') {
       // Admin can update both notes
       if (restaurantNotes !== undefined) {
         order.restaurantNotes = restaurantNotes;
@@ -957,20 +958,20 @@ exports.updateOrderNotes = async (req, res) => {
     } else {
       return res
         .status(403)
-        .json({ message: "Not authorized to update order notes" });
+        .json({ message: 'Not authorized to update order notes' });
     }
 
     await order.save();
 
     return res.status(200).json({
       success: true,
-      message: "Order notes updated successfully",
+      message: 'Order notes updated successfully',
     });
   } catch (error) {
-    console.error("Update order notes error:", error);
+    console.error('Update order notes error:', error);
     return res
       .status(500)
-      .json({ message: "Failed to update order notes", error: error.message });
+      .json({ message: 'Failed to update order notes', error: error.message });
   }
 };
 
@@ -980,7 +981,7 @@ exports.orderOverview = async (req, res) => {
     const result = await Order.aggregate([
       {
         $group: {
-          _id: "$status",
+          _id: '$status',
           count: { $sum: 1 },
         },
       },
@@ -1004,35 +1005,35 @@ exports.orderOverview = async (req, res) => {
       totalOrders += item.count;
 
       switch (item._id) {
-        case "PENDING":
+        case 'PENDING':
           pendingOrders += item.count;
           break;
-        case "ACCEPTED":
+        case 'ACCEPTED':
           acceptedOrders += item.count;
           break;
-        case "PREPARING":
+        case 'PREPARING':
           preparingOrders += item.count;
           break;
-        case "READY_FOR_PICKUP":
+        case 'READY_FOR_PICKUP':
           readyForPickupOrders += item.count;
           break;
-        case "ASSIGNED":
+        case 'ASSIGNED':
           assignedOrders += item.count;
           break;
-        case "OUT_FOR_DELIVERY":
+        case 'OUT_FOR_DELIVERY':
           outForDeliveryOrders += item.count;
           break;
-        case "DELIVERED":
+        case 'DELIVERED':
           completedOrders += item.count;
           break;
-        case "CANCELLED":
+        case 'CANCELLED':
           cancelledOrders += item.count;
           break;
-        case "REJECTED":
+        case 'REJECTED':
           rejectedOrders += item.count;
           break;
         default:
-        case "REJECTED":
+        case 'REJECTED':
           cancelledOrders += item.count;
           break;
       }
@@ -1056,10 +1057,10 @@ exports.orderOverview = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Error fetching order overview:", error);
+    console.error('Error fetching order overview:', error);
     return res.status(500).json({
       success: false,
-      message: "Internal Server Error",
+      message: 'Internal Server Error',
     });
   }
 };
@@ -1076,21 +1077,21 @@ exports.revenueOverview = async (req, res) => {
       {
         $match: {
           createdAt: { $gte: startDate },
-          paymentStatus: "PAID",
+          paymentStatus: 'PAID',
         },
       },
       {
         $addFields: {
-          date: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
-          dayOfWeek: { $dayOfWeek: "$createdAt" }, // 1 (Sun) to 7 (Sat)
+          date: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+          dayOfWeek: { $dayOfWeek: '$createdAt' }, // 1 (Sun) to 7 (Sat)
         },
       },
       {
         $group: {
-          _id: "$date",
-          totalIncome: { $sum: "$finalTotal" },
+          _id: '$date',
+          totalIncome: { $sum: '$finalTotal' },
           orderCount: { $sum: 1 },
-          dayOfWeek: { $first: "$dayOfWeek" },
+          dayOfWeek: { $first: '$dayOfWeek' },
         },
       },
       {
@@ -1098,7 +1099,7 @@ exports.revenueOverview = async (req, res) => {
       },
     ]);
 
-    const dayMap = ["Sun", "Mon", "Tues", "Wed", "Thu", "Fri", "Sat"];
+    const dayMap = ['Sun', 'Mon', 'Tues', 'Wed', 'Thu', 'Fri', 'Sat'];
 
     const resultMap = {};
     rawData.forEach((entry) => {
@@ -1113,7 +1114,7 @@ exports.revenueOverview = async (req, res) => {
     for (let i = days - 1; i >= 0; i--) {
       const d = new Date();
       d.setDate(today.getDate() - i);
-      const dateStr = d.toISOString().split("T")[0];
+      const dateStr = d.toISOString().split('T')[0];
       const dayName = dayMap[d.getDay()];
 
       fullResult.push({
@@ -1129,10 +1130,10 @@ exports.revenueOverview = async (req, res) => {
       data: fullResult,
     });
   } catch (error) {
-    console.error("Revenue Overview Error:", error);
+    console.error('Revenue Overview Error:', error);
     res.status(500).json({
       success: false,
-      message: "Failed to fetch revenue overview",
+      message: 'Failed to fetch revenue overview',
       error: error.message,
     });
   }
