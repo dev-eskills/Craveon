@@ -8,23 +8,23 @@ import { useAuthStore } from '../stores/authStore';
 import OrderSkeleton from '../components/skeleton/OrderSkeleton';
 
 const UserOrderHistory = () => {
-    const user = useAuthStore((state) => state.user);
+  const user = useAuthStore((state) => state.user);
   const { id } = useParams();
   const [expanded, setExpanded] = useState(null);
-  const { orders, orderAssignFn , isOrdersLoading} = useOrder(null, null, null, '', null, null, id);
+  const { orders, orderAssignFn, isOrdersLoading } = useOrder(null, null, null, '', null, null, id);
 
   const toggleExpand = (id) => {
     setExpanded(expanded === id ? null : id);
   };
-
+  console.log("orders: ", orders);
   return (
     <ContentWrapper className="bg-white">
       <div className="mx-auto p-4 bg-white min-h-screen">
-        <BackButton text={'Recent Orders'} />
+        {/* <BackButton text={'Recent Orders'} /> */}
         <div>
           {isOrdersLoading ? (
             <>
-            <OrderSkeleton/>
+              <OrderSkeleton />
             </>
           ) : (
             <>
@@ -45,18 +45,40 @@ const UserOrderHistory = () => {
                           <h3 className="font-semibold">{order.restaurant.name}</h3>
                           <p className="text-sm text-gray-500">Order #{order.orderNumber}</p>
                           <p
-                            className={`flex items-center font-medium ${
-                              order.status === 'PENDING'
-                                ? 'text-yellow-500'
-                                : order.status === 'REJECTED'
-                                  ? 'text-red-600'
-                                  : order.status === 'CANCELLED'
-                                    ? 'text-orange-600'
-                                    : 'text-green-600'
-                            }`}
+                            className={`flex items-center font-medium ${order.status === 'PENDING'
+                              ? 'text-yellow-500'
+                              : order.status === 'REJECTED'
+                                ? 'text-red-600'
+                                : order.status === 'CANCELLED'
+                                  ? 'text-orange-600'
+                                  : 'text-green-600'
+                              }`}
                           >
                             <CheckCircle className="w-4 h-4 mr-1" /> {order.status}
                           </p>
+                          <div className="mt-2 flex items-center gap-3 rounded-lg px-3 py-2 border border-gray-200">
+                            {/* Avatar / Icon */}
+                            {/* <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary text-sm font-semibold">
+                              🏍️
+                            </div> */}
+
+                            {/* Rider Info */}
+                            <div className="flex flex-col">
+                              <p className="text-sm font-medium text-gray-800">
+                                {order?.deliveryPartner?.name || "Rider Not Assigned"}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {order?.deliveryPartner?.number || "NA"}
+                              </p>
+                            </div>
+
+                            {/* Status badge (optional) */}
+                            <span className="ml-auto rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">
+                              On Delivery
+                            </span>
+                          </div>
+
+
                         </div>
                         <div className="flex items-center">
                           {expanded === order._id ? (
