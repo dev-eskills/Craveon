@@ -98,8 +98,13 @@ const registerUser = expressAsyncHandler(async (req, res) => {
     console.log(error , "error from register user")
     // Handle MongoDB duplicate key error specifically
     if (error.code === 11000) {
+      const duplicateField = Object.keys(error.keyPattern || {})[0];
       res.status(409);
-      throw new Error(error);
+      throw new Error(
+        duplicateField
+          ? `User already exists with this ${duplicateField}`
+          : "User already exists"
+      );
     }
 
     throw error;

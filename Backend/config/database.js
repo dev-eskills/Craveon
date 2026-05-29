@@ -1,5 +1,20 @@
 const mongoose = require("mongoose");
 const logger = require("./logger");
+const User = require("../models/user");
+
+const syncUserIndexes = async () => {
+  const indexes = await User.collection.indexes();
+  const hasLegacyUsernameIndex = indexes.some(
+    (index) => index.name === "username_1"
+  );
+
+  if (hasLegacyUsernameIndex) {
+    await User.collection.dropIndex("username_1");
+    logger.info("Dropped legacy users.username_1 index");
+  }
+
+  await User.createIndexes();
+};
 
 const connectDB = async () => {
   try {
@@ -10,6 +25,7 @@ const connectDB = async () => {
     });
 
     logger.info(`MongoDB Connected: ${conn.connection.host}`);
+    await syncUserIndexes();
 
     // Handle MongoDB events
     mongoose.connection.on("error", (err) => {
