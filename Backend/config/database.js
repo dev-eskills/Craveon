@@ -1,8 +1,8 @@
-const mongoose = require('mongoose');
-const logger = require('./logger');
-const User = require('../models/user');
-
+const mongoose = require("mongoose");
+const logger = require("./logger");
+const dns = require("dns")
 const connectDB = async () => {
+  dns.setServers(["1.1.1.1", "8.8.8.8"]); 
   try {
     const conn = await mongoose.connect(process.env.MONGODB_URI, {
       maxPoolSize: 100, // Support up to 5000 users
