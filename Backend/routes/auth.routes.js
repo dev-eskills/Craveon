@@ -4,6 +4,7 @@ const {
   loginUser,
   refreshToken,
   logoutUser,
+  resetPassword,
 } = require("../controllers/user.controller");
 const { sendOtp, verifyOtp } = require("../controllers/otp.controller");
 
@@ -15,7 +16,6 @@ router.post("/login", loginUser);
 router.get("/refresh", refreshToken);
 router.get("/otp", sendOtp);
 router.post("/verifyOtp", verifyOtp);
-
-// router.post("/resetPassword", resetPassword);
+router.post("/resetPassword", resetPassword);
 
 module.exports = router;

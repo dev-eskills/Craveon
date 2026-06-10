@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const addressSchema = new mongoose.Schema({
   addressLine1: { type: String, required: true },
@@ -6,8 +6,8 @@ const addressSchema = new mongoose.Schema({
   city: { type: String, required: true },
   state: { type: String, required: true },
   zipCode: { type: String, required: true },
-  country: { type: String, default: "India" },
-  label: { type: String, default: "home" }, // home, office, etc.
+  country: { type: String, default: 'India' },
+  label: { type: String, default: 'home' },
 });
 
 const userSchema = new mongoose.Schema(
@@ -19,39 +19,46 @@ const userSchema = new mongoose.Schema(
     },
     email: {
       type: String,
-      required: false,
       trim: true,
       lowercase: true,
+      sparse: true, // allows multiple users without email
     },
     password: {
       type: String,
-      required: [true, "Please Enter Your Password"],
+      required: [true, 'Please Enter Your Password'],
     },
     number: {
       type: String,
-      unique: true,
-      index: true,
-      required: [true, "Please Enter Your Valid Mobile Number"],
+      required: [true, 'Please Enter Your Valid Mobile Number'],
+      trim: true,
+      // ✅ No unique/index here — defined explicitly below
     },
     addresses: {
       type: [addressSchema],
-      required: false,
       default: [],
     },
     role: {
       type: String,
-      enum: ["user", "admin", "restaurant", "delivery"],
-      default: "user",
+      enum: ['user', 'admin', 'restaurant', 'delivery'],
+      default: 'user',
     },
-    token: {
-      type: String,
-    },
-    refreshToken: String,
+    token: { type: String },
+    refreshToken: { type: String },
   },
   {
     timestamps: true,
+    autoIndex: process.env.NODE_ENV !== 'production', // ✅ never autoIndex in prod
   }
 );
 
-// module.exports = mongoose.model("User", userSchema);
-module.exports = mongoose.models.User || mongoose.model("User", userSchema);
+// ✅ Explicit, named, intentional index — full control, no surprises
+userSchema.index(
+  { number: 1 },
+  {
+    unique: true,
+    sparse: true, // skip docs where number is null/missing
+    name: 'idx_users_number_unique', // explicit name = no auto-generated conflicts
+  }
+);
+
+module.exports = mongoose.models.User || mongoose.model('User', userSchema);

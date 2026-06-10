@@ -11,17 +11,18 @@ const connectDB = async () => {
     });
 
     logger.info(`MongoDB Connected: ${conn.connection.host}`);
+    await User.syncIndexes();
 
     // Handle MongoDB events
-    mongoose.connection.on("error", (err) => {
-      logger.error("MongoDB connection error:", err);
+    mongoose.connection.on('error', (err) => {
+      logger.error('MongoDB connection error:', err);
     });
 
-    mongoose.connection.on("disconnected", () => {
-      logger.warn("MongoDB disconnected. Attempting to reconnect...");
+    mongoose.connection.on('disconnected', () => {
+      logger.warn('MongoDB disconnected. Attempting to reconnect...');
     });
   } catch (error) {
-    logger.error("Error connecting to MongoDB:", error);
+    logger.error('Error connecting to MongoDB:', error);
     process.exit(1);
   }
 };

@@ -18,10 +18,12 @@ app.use(cookieParser());
 app.use(helmet()); 
 app.use(
   cors({
-    origin: process.env.ALLOWED_ORIGINS?.split(",") || "*",
+    origin: (origin, callback) => {
+      return callback(null, true);
+    },
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-    allowedHeaders: ["Content-Type", "Authorization", "position"],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'position'],
   })
 );
 app.use(express.json({ limit: "10mb" }));
@@ -38,9 +40,7 @@ app.use("/api/settings", require("./routes/setting.routes"));
 app.use("/api/order", require("./routes/order.routes"));
 app.use("/api/admin/rider", require("./routes/adminRider.routes"));
 app.use("/api/rider", require("./routes/rider.Routes"));
-app.get("/api/test-github-resolve", (req, res) => {
-  res.status(200).json({ message: "Bug is now fixed!" });
-});
+
 // ─── SENTRY ERROR HANDLER (MOVED HERE) ──────────────────────────────
 Sentry.setupExpressErrorHandler(app);
 

@@ -45,12 +45,8 @@ const updateSetRestroStatus = async (id) => {
 };
 
 const createRestaurant = async (formData) => {
-  try {
-    const response = await api.post(BASE_URL, formData);
-    return response.data;
-  } catch (error) {
-    throw new Error(error);
-  }
+  const response = await api.post(BASE_URL, formData);
+  return response.data;
 };
 
 const updateRestaurant = async ({ data, editId }) => {

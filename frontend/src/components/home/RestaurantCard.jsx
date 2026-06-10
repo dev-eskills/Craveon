@@ -37,7 +37,7 @@ const RestaurantCard = ({ restaurant }) => {
           {restaurant?.isOpen && (
             <div className="flex items-center text-sm text-gray-600 my-2">
               <Clock size={16} className="mr-1" />
-              <span>
+              <span>                                                                                                                                                                                                                                                                                      
                 {restaurant?.businessHours?.open} - {restaurant?.businessHours?.close}
               </span>
             </div>

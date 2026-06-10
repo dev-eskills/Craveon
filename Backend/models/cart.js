@@ -152,7 +152,6 @@ cartSchema.pre("save", async function (next) {
     if (this.restaurant) {
       const Restaurant = mongoose.model("Restaurant");
       const Setting = mongoose.model("Setting");
-
       const restaurant = await Restaurant.findById(this.restaurant).select(
         "packagingCharge deliverySettings.deliveryFee deliverySettings.minimumOrderAmount"
       );
@@ -191,7 +190,6 @@ cartSchema.pre("save", async function (next) {
           this.taxAmount +
           this.packagingCharge +
           this.deliveryFee +
-          // Calculate discount amount
           this.discountAmount;
         if (this.discounts && this.discounts.length > 0) {
           this.discounts.forEach((discount) => {
@@ -203,22 +201,20 @@ cartSchema.pre("save", async function (next) {
           });
         }
 
-        // Ensure discount doesn't exceed the subtotal
         this.discountAmount = Math.min(this.discountAmount, this.subtotal);
 
-        // Calculate final total
         this.finalTotal = Math.max(
           totalBeforeDiscount - this.discountAmount,
           0
         );
 
-        // Round to 2 decimal places
         this.finalTotal = Math.floor(this.finalTotal);
       }
     }
 
     next();
   } catch (error) {
+    console.error("❌ Error in cart pre-save hook:", error);
     next(error);
   }
 });

@@ -524,9 +524,10 @@ exports.getAllRestaurants = asyncHandler(async (req, res) => {
 
     // IST Time Logic
     const nowUtc = new Date();
-    const istOffsetMinutes = 5.5 * 60; // 330 mins
-    const istNow = new Date(nowUtc.getTime() + istOffsetMinutes * 60000);
-
+    // const istOffsetMinutes = 5.5 * 60; // 330 mins
+    // const istNow = new Date(nowUtc.getTime() + istOffsetMinutes * 60000);
+ // IST Time Logic - get reliable IST time using locale timeZone (matches model.isOpen)
+  const istNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
     const currentDay = istNow.getDay(); // ✅ Keep variable name same as before
     const nowTime = istNow.getHours() * 60 + istNow.getMinutes(); // IST time in minutes
 

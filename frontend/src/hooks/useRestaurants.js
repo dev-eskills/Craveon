@@ -45,7 +45,9 @@ export default function useRestaurants(id, page = 1, pageSize = 10, isActive) {
       resetState();
       navigate('/admin/restaurants');
     },
-    onError: handleError,
+    onError: (error) => {
+      toast.error(error?.response.data.message || error.message || 'somethign went wrong ');
+    },
   });
 
   const removeRestaurant = useMutation({
@@ -113,7 +115,7 @@ export default function useRestaurants(id, page = 1, pageSize = 10, isActive) {
     updateRestaurantStatusFn: updateRestaurantStatus.mutate,
     updateRestaurantDetailFn: updateRestaurantDetail.mutate,
     restaurantReport: reportRestaurant.data,
-    restaurantReportLoading:reportRestaurant.isPending
+    restaurantReportLoading: reportRestaurant.isPending,
   };
 }
 
@@ -170,7 +172,7 @@ export function useSingleRestaurant(id) {
 
   return {
     singleRestaurant: singleRestaurant.data ?? null,
-    singleRestrauntLoading:singleRestaurant.isPending
+    singleRestrauntLoading: singleRestaurant.isPending,
   };
 }
 
