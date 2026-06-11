@@ -1,12 +1,29 @@
 // src/middleware/error.js
 const ErrorResponse = require("../utils/errorResponse");
 const logger = require("../config/logger");
+const logsController = require("../controllers/logs.controller");
 
 const errorHandler = (err, req, res, next) => {
   let error = { ...err };
   error.message = err.message;
 
-  // Log error
+  // Log error details to DB
+  logsController.saveLog({
+    level: "error",
+    message: err.message,
+    meta: {
+      method: req.method,
+      endpoint: req.originalUrl,
+      requestBody: req.body,
+      query: req.query,
+      params: req.params,
+      user: req.user || null,
+      statusCode: err.statusCode || 500,
+      stack: err.stack,
+    },
+  });
+
+  // Log error to console via logger
   logger.error(err);
 
   // Mongoose bad ObjectId
