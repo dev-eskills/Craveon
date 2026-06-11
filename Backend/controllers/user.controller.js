@@ -317,6 +317,7 @@ const userDetails = expressAsyncHandler(async (req, res) => {
     }
     res.status(200).json({ user });
   } catch (error) {
+    console.log("console")
     res.status(500).json({ message: "Error fetching user", error });
   }
 });

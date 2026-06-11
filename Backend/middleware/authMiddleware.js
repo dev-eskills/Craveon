@@ -43,6 +43,7 @@ exports.authenticate = async (req, res, next) => {
 
     // Add user to request object
     req.user = user;
+    console.log(user , 'user')
 
     next();
   } catch (error) {
