@@ -53,6 +53,7 @@ import AdminSettings from '../components/admin/AdminSettings';
 import SingleOrder from '../components/restaurantDashboard/SingleOrder';
 import AboutUs from '../components/footer/aboutUs';
 import Help from '../components/footer/help';
+import AdminLogs from '../pages/AdminLogsPage';
 // import UserOrders from '../components/admin/UserOrders';
 
 export const router = createBrowserRouter([
@@ -81,14 +82,14 @@ export const router = createBrowserRouter([
     element: <ContactUs />,
   },
   {
-    path:'about-us',
-    element: <AboutUs/>
+    path: 'about-us',
+    element: <AboutUs />
   },
   {
     path: 'help',
-    element : <Help/>
+    element: <Help />
   },
- 
+
   // User Application Routes
   {
     path: '/user',
@@ -211,6 +212,10 @@ export const router = createBrowserRouter([
         path: 'order-history/:id',
         element: <UserOrderHistory />,
       },
+      {
+        path: 'logs',
+        element: <AdminLogs />
+      },
     ],
   },
 
@@ -240,8 +245,8 @@ export const router = createBrowserRouter([
         element: <RestaurantOrders />,
       },
       {
-        path: 'orders/:id', 
-        element: <SingleOrder/>, 
+        path: 'orders/:id',
+        element: <SingleOrder />,
       },
       {
         path: 'report',

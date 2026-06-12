@@ -1,6 +1,7 @@
 import {
   Bike,
   BookX,
+  Database,
   Gauge,
   MessageSquareWarning,
   Plus,
@@ -59,6 +60,11 @@ export const ADMIN_ROUTES = [
     path: '/admin/add-restaurant',
     name: 'Add Restaurant',
     icon: UserRoundPlus,
+  },
+  {
+    path: '/admin/logs',
+    name: 'Logs',
+    icon: Database,
   },
 ];
 
