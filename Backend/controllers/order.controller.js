@@ -27,6 +27,7 @@ exports.createOrder = async (req, res) => {
     // Get active cart for user
     const cart = await Cart.findOne({ user: userId })
       .populate('restaurant')
+      .populate('items.product')
       .session(session);
 
     if (!cart || cart.items.length === 0) {

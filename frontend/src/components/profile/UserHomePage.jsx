@@ -30,11 +30,7 @@ const UserHomePage = ({ changeForm }) => {
   ];
 
   const handleQuickLinkClick = (label, route) => {
-    if (label === 'Support') {
-      setShowPopup(true);
-    } else {
-      navigate(route);
-    }
+    navigate(route);
   };
 
   return (

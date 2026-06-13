@@ -107,6 +107,7 @@ const AdminOrders = () => {
     },
   ];
 
+console.log("adminOrder: ",adminOrder);
   return (
     <div className="overflow-x-auto w-full p-6 border border-gray-100 rounded-md">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
@@ -176,7 +177,7 @@ const AdminOrders = () => {
                 <tr key={order.id} className="border-b text-sm lg:text-md border-gray-200">
                   <td className="py-3 px-4 whitespace-nowrap">{order?.orderNumber}</td>
                   <td className="py-3 px-4 whitespace-nowrap">{order?.user?.name}</td>
-                  <td className="py-3 px-4 whitespace-nowrap">{order.restaurant.name}</td>
+                  <td className="py-3 px-4 whitespace-nowrap">{order?.restaurant?.name}</td>
                   <td className="py-3 px-4 whitespace-nowrap">
                     <span
                       className={`px-2 py-1 rounded-full text-xs ${

@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const logger = require("./logger");
-const dns = require("dns")
+const dns = require("dns");
+const User = require("../models/user");
 const connectDB = async () => {
   dns.setServers(["1.1.1.1", "8.8.8.8"]); 
   try {

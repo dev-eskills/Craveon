@@ -6,6 +6,7 @@ import { useOrder } from '../../hooks/useOrder';
 
 const OrderSummary = () => {
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { cartItems } = useCart();
   const { selectedDelAddress, paymentMode, setCartStep, cartStep } = useCartStore((state) => state);
   const { createOrderFn, createOrderLoading } = useOrder();
@@ -17,10 +18,22 @@ const OrderSummary = () => {
     }
 
     if (cartStep === 2) {
-      createOrderFn({
-        paymentMode: paymentMode,
-        deliveryAddressId: selectedDelAddress._id,
-      });
+      if (isSubmitting || createOrderLoading) return;
+      setIsSubmitting(true);
+      createOrderFn(
+        {
+          paymentMode: paymentMode,
+          deliveryAddressId: selectedDelAddress._id,
+        },
+        {
+          onError: () => {
+            setIsSubmitting(false);
+          },
+          onSettled: () => {
+            setIsSubmitting(false);
+          },
+        }
+      );
     }
   };
 
@@ -89,14 +102,14 @@ const OrderSummary = () => {
 
         <button
           className={`w-full py-3 px-4 rounded-md font-medium text-white mt-4  ${
-            termsAccepted && selectedDelAddress && !createOrderLoading
+            termsAccepted && selectedDelAddress && !createOrderLoading && !isSubmitting
               ? 'bg-[#ff6900] hover:bg-orange-600 cursor-pointer'
               : 'bg-[#ff6a0088] cursor-not-allowed'
           }`}
-          disabled={!termsAccepted || !selectedDelAddress || createOrderLoading}
+          disabled={!termsAccepted || !selectedDelAddress || createOrderLoading || isSubmitting}
           onClick={onPlaceOrder}
         >
-          Place Order · ₹ {cartItems?.finalTotal}
+          {isSubmitting || createOrderLoading ? 'Processing...' : `Place Order · ₹ ${cartItems?.finalTotal}`}
         </button>
       </div>
     </div>

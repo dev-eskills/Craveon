@@ -21,6 +21,8 @@ const AdminBannersPage = lazy(() => import('../pages/AdminBannersPage'));
 const AdminAllRidersPage = lazy(() => import('../pages/AdminAllRidersPage'));
 const AdminSingleRestaurantPage = lazy(() => import('../pages/AdminSingleRestaurantPage'));
 const AdminAddRestaurant = lazy(() => import('../pages/AdminAddRestaurant'));
+const UserSupportPage = lazy(() => import('../components/profile/UserSupportPage'));
+const AdminSupportPage = lazy(() => import('../components/admin/AdminSupportPage'));
 
 // Components
 const BillingForm = lazy(() => import('../components/cart/BillingForm'));
@@ -132,6 +134,14 @@ export const router = createBrowserRouter([
         ),
       },
       {
+        path: 'profile/support',
+        element: (
+          <ProtectedRoute allowedRoles={['user']}>
+            <UserSupportPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
         path: 'cart',
         element: (
           <ProtectCart>
@@ -207,6 +217,10 @@ export const router = createBrowserRouter([
       {
         path: 'category',
         element: <AdminAddCategory />,
+      },
+      {
+        path: 'support',
+        element: <AdminSupportPage />,
       },
       {
         path: 'order-history/:id',

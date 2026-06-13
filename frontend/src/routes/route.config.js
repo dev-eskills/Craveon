@@ -64,7 +64,12 @@ export const ADMIN_ROUTES = [
   {
     path: '/admin/logs',
     name: 'Logs',
-    icon: Database,
+    icon: Database
+  },
+  {
+    path: '/admin/support',
+    name: 'Support & Disputes',
+    icon: MessageSquareWarning,
   },
 ];
 

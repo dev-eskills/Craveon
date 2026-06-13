@@ -40,6 +40,7 @@ app.use("/api/settings", require("./routes/setting.routes"));
 app.use("/api/order", require("./routes/order.routes"));
 app.use("/api/admin/rider", require("./routes/adminRider.routes"));
 app.use("/api/rider", require("./routes/rider.Routes"));
+app.use("/api/support", require("./routes/support.routes"));
 
 // ─── SENTRY ERROR HANDLER (MOVED HERE) ──────────────────────────────
 Sentry.setupExpressErrorHandler(app);
